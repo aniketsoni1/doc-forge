@@ -1,0 +1,150 @@
+{
+  "name": "docforge-vscode",
+  "displayName": "DocForge",
+  "description": "Generate polished Markdown or HTML documents from a prompt — using your available AI, with an always-on offline fallback.",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "publisher": "aniketsoni1",
+  "license": "Apache-2.0",
+  "author": "aniketsoni1",
+  "homepage": "https://github.com/aniketsoni1/docforge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aniketsoni1/docforge.git",
+    "directory": "apps/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/aniketsoni1/docforge/issues"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "markdown",
+    "html",
+    "document generator",
+    "readme",
+    "ai",
+    "copilot",
+    "template"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0d1117",
+    "theme": "dark"
+  },
+  "main": "./dist/extension.cjs",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In untrusted workspaces DocForge uses only the offline template generator (no AI, no network)."
+    }
+  },
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "docforge.newDocument",
+        "title": "DocForge: New Document from Prompt",
+        "category": "DocForge"
+      },
+      {
+        "command": "docforge.setApiKey",
+        "title": "DocForge: Set API Key",
+        "category": "DocForge"
+      },
+      {
+        "command": "docforge.clearApiKey",
+        "title": "DocForge: Clear API Key",
+        "category": "DocForge"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "docforge.setApiKey",
+          "when": "isWorkspaceTrusted"
+        },
+        {
+          "command": "docforge.clearApiKey",
+          "when": "isWorkspaceTrusted"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "docforge.newDocument",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d"
+      }
+    ],
+    "configuration": {
+      "title": "DocForge",
+      "properties": {
+        "docforge.defaultFormat": {
+          "type": "string",
+          "enum": [
+            "md",
+            "html"
+          ],
+          "default": "md",
+          "description": "Default output format for new documents."
+        },
+        "docforge.tone": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "formal",
+            "friendly",
+            "technical",
+            "marketing"
+          ],
+          "default": "neutral",
+          "description": "Default document tone."
+        },
+        "docforge.length": {
+          "type": "string",
+          "enum": [
+            "short",
+            "medium",
+            "long"
+          ],
+          "default": "medium",
+          "description": "Default document length."
+        },
+        "docforge.enableAi": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow AI generators (VS Code LM API, compatible extensions, BYO key). When off, DocForge uses the offline template generator only."
+        },
+        "docforge.provider": {
+          "type": "string",
+          "enum": [
+            "anthropic",
+            "openai"
+          ],
+          "default": "anthropic",
+          "description": "Provider for the bring-your-own-key generator."
+        },
+        "docforge.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-latest",
+          "description": "Model id for the bring-your-own-key generator."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node ./esbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "vscode:prepublish": "node ./esbuild.mjs --production"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

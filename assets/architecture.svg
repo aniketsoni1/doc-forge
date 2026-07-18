@@ -1,0 +1,70 @@
+<svg width="960" height="620" viewBox="0 0 960 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DocForge architecture diagram">
+  <style>
+    .box { fill:#ffffff; stroke:#d0d7de; stroke-width:2; rx:10; }
+    .lbl { font-family:Segoe UI, Helvetica, Arial, sans-serif; fill:#1f2328; }
+    .h  { font-weight:700; }
+    .muted { fill:#57606a; }
+    .band { font-family:Segoe UI, Helvetica, Arial, sans-serif; font-weight:700; fill:#7c3aed; }
+    .pkg { fill:#f6f2ff; stroke:#c4b5fd; stroke-width:2; }
+    .pure { fill:#eefcf3; stroke:#86efac; stroke-width:2; }
+    .core { fill:#fff7ed; stroke:#fdba74; stroke-width:2; }
+  </style>
+  <rect width="960" height="620" fill="#ffffff"/>
+  <text x="40" y="46" class="lbl h" font-size="26">DocForge architecture</text>
+  <text x="40" y="74" class="lbl muted" font-size="15">One shared TypeScript core · two thin UIs · path-alias monorepo (@dfg/* → packages/*/src)</text>
+
+  <!-- Apps -->
+  <text x="40" y="120" class="band" font-size="15">APPS (thin UIs)</text>
+  <rect x="40" y="132" width="410" height="70" rx="10" class="pkg"/>
+  <text x="60" y="166" class="lbl h" font-size="18">apps/cli</text>
+  <text x="60" y="190" class="lbl muted" font-size="13">commander · create/init/doctor/configure · esbuild → cjs</text>
+  <rect x="510" y="132" width="410" height="70" rx="10" class="pkg"/>
+  <text x="530" y="166" class="lbl h" font-size="18">apps/vscode-extension</text>
+  <text x="530" y="190" class="lbl muted" font-size="13">command · live preview webview (CSP) · Insert/Save</text>
+
+  <!-- Agent -->
+  <text x="40" y="248" class="band" font-size="15">ORCHESTRATION</text>
+  <rect x="40" y="260" width="880" height="64" rx="10" class="box"/>
+  <text x="60" y="292" class="lbl h" font-size="18">@dfg/agent</text>
+  <text x="60" y="314" class="lbl muted" font-size="13">resolves the generator ladder · validate → one bounded repair → fall-through · finalize + preview + provenance</text>
+
+  <!-- Generators -->
+  <text x="40" y="368" class="band" font-size="15">GENERATORS (implement the Generator seam)</text>
+  <rect x="40" y="380" width="205" height="66" rx="10" class="pkg"/>
+  <text x="58" y="410" class="lbl h" font-size="15">generator-lm-api</text>
+  <text x="58" y="432" class="lbl muted" font-size="12">VS Code LM API</text>
+  <rect x="257" y="380" width="205" height="66" rx="10" class="pkg"/>
+  <text x="275" y="410" class="lbl h" font-size="15">generator-extension</text>
+  <text x="275" y="432" class="lbl muted" font-size="12">best-effort ext API</text>
+  <rect x="474" y="380" width="205" height="66" rx="10" class="pkg"/>
+  <text x="492" y="410" class="lbl h" font-size="15">generator-byok</text>
+  <text x="492" y="432" class="lbl muted" font-size="12">Anthropic / OpenAI key</text>
+  <rect x="691" y="380" width="229" height="66" rx="10" class="pure"/>
+  <text x="709" y="410" class="lbl h" font-size="15">generator-template</text>
+  <text x="709" y="432" class="lbl muted" font-size="12">deterministic · offline · tested</text>
+
+  <!-- Pure + core -->
+  <text x="40" y="492" class="band" font-size="15">PURE LIBRARIES + CONTRACTS</text>
+  <rect x="40" y="504" width="200" height="66" rx="10" class="pure"/>
+  <text x="58" y="534" class="lbl h" font-size="15">@dfg/render</text>
+  <text x="58" y="556" class="lbl muted" font-size="12">md→html · scaffold</text>
+  <rect x="252" y="504" width="200" height="66" rx="10" class="pure"/>
+  <text x="270" y="534" class="lbl h" font-size="15">@dfg/templates</text>
+  <text x="270" y="556" class="lbl muted" font-size="12">presets · heuristics</text>
+  <rect x="464" y="504" width="200" height="66" rx="10" class="pure"/>
+  <text x="482" y="534" class="lbl h" font-size="15">@dfg/sanitize</text>
+  <text x="482" y="556" class="lbl muted" font-size="12">allowlist · md lint</text>
+  <rect x="676" y="504" width="244" height="66" rx="10" class="core"/>
+  <text x="694" y="534" class="lbl h" font-size="15">@dfg/core</text>
+  <text x="694" y="556" class="lbl muted" font-size="12">DocSpec · DocResult · Generator</text>
+
+  <!-- arrows -->
+  <g stroke="#8b949e" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M245 202 V255"/>
+    <path d="M715 202 V255"/>
+    <path d="M480 324 V375"/>
+  </g>
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#8b949e"/></marker>
+  </defs>
+</svg>

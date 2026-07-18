@@ -1,0 +1,118 @@
+export interface HtmlDocumentOptions {
+  /** Document title (also used for <title> and the visually-hidden landmark). */
+  title: string;
+  /** Sanitized HTML fragment for the document body. */
+  bodyHtml: string;
+  /** BCP-47 language tag. Default 'en'. */
+  lang?: string;
+  /** Override the built-in stylesheet entirely. */
+  css?: string;
+}
+
+/** Escape a string for safe interpolation into HTML text/attribute contexts. */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Accessible, theme-aware, printable default stylesheet. Uses only class and
+ * element selectors so it composes with a strict webview CSP (styles injected
+ * via a nonce'd <style> element by the host).
+ */
+export const DEFAULT_DOCUMENT_CSS = `:root {
+  color-scheme: light dark;
+  --df-bg: #ffffff;
+  --df-fg: #1f2328;
+  --df-muted: #57606a;
+  --df-accent: #7c3aed;
+  --df-border: #d0d7de;
+  --df-code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --df-bg: #0d1117;
+    --df-fg: #e6edf3;
+    --df-muted: #9198a1;
+    --df-accent: #c4b5fd;
+    --df-border: #30363d;
+    --df-code-bg: #161b22;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--df-bg);
+  color: var(--df-fg);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+.docforge-doc {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+.docforge-doc h1, .docforge-doc h2, .docforge-doc h3 { line-height: 1.25; margin-top: 1.8em; }
+.docforge-doc h1 { font-size: 2rem; border-bottom: 1px solid var(--df-border); padding-bottom: .3em; }
+.docforge-doc h2 { font-size: 1.5rem; border-bottom: 1px solid var(--df-border); padding-bottom: .3em; }
+.docforge-doc a { color: var(--df-accent); }
+.docforge-doc code {
+  background: var(--df-code-bg);
+  padding: .2em .4em;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em;
+}
+.docforge-doc pre {
+  background: var(--df-code-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+}
+.docforge-doc pre code { background: none; padding: 0; }
+.docforge-doc blockquote {
+  margin: 1em 0;
+  padding: 0 1em;
+  color: var(--df-muted);
+  border-left: .25em solid var(--df-border);
+}
+.docforge-doc table { border-collapse: collapse; width: 100%; }
+.docforge-doc th, .docforge-doc td { border: 1px solid var(--df-border); padding: .5em .75em; }
+.docforge-doc img { max-width: 100%; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .docforge-doc { max-width: none; padding: 0; }
+  .docforge-doc a { color: #000; text-decoration: underline; }
+  .docforge-doc pre, .docforge-doc code { background: #f2f2f2; }
+}`;
+
+/** Wrap a sanitized HTML fragment in a complete, standalone, themed document. */
+export function renderHtmlDocument(options: HtmlDocumentOptions): string {
+  const lang = options.lang ?? 'en';
+  const css = options.css ?? DEFAULT_DOCUMENT_CSS;
+  const title = escapeHtml(options.title);
+  return `<!doctype html>
+<html lang="${escapeHtml(lang)}">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content="DocForge" />
+<title>${title}</title>
+<style>${css}</style>
+</head>
+<body>
+<main class="docforge-doc">
+<h1 class="visually-hidden">${title}</h1>
+${options.bodyHtml}
+</main>
+</body>
+</html>
+`;
+}

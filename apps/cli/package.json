@@ -1,0 +1,12 @@
+{
+  "name": "@dfg/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DocForge command-line interface.",
+  "bin": { "docforge": "../../dist/cli/index.cjs" },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "picocolors": "^1.0.1"
+  }
+}

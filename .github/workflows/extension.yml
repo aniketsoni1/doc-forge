@@ -1,0 +1,49 @@
+name: Extension
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vsix:
+    name: Build · Verify · (guarded) Publish VSIX
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Build + package + verify VSIX
+        run: |
+          npm run build:ext
+          npm run package:vsix
+          npm run verify:vsix
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docforge-vsix
+          path: artifacts/*.vsix
+
+      - name: Publish to VS Code Marketplace (guarded)
+        if: ${{ startsWith(github.ref, 'refs/tags/') && secrets.VSCE_PAT != '' }}
+        run: |
+          VSIX="$(ls artifacts/*.vsix | head -1)"
+          npx @vscode/vsce publish --no-dependencies --packagePath "$VSIX"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX (guarded)
+        if: ${{ startsWith(github.ref, 'refs/tags/') && secrets.OVSX_PAT != '' }}
+        run: |
+          VSIX="$(ls artifacts/*.vsix | head -1)"
+          npx ovsx publish "$VSIX" -p "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}

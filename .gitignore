@@ -1,0 +1,13 @@
+node_modules/
+dist/
+artifacts/
+coverage/
+*.tsbuildinfo
+*.vsix
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+.vscode-test/
+.docforge-cache/

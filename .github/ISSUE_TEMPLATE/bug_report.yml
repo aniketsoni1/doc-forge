@@ -1,0 +1,32 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `docforge create "..."`
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Environment (`docforge doctor` output)
+      render: shell
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options: ["CLI", "VS Code extension", "Both"]
+    validations:
+      required: true

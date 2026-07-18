@@ -1,0 +1,19 @@
+# Source & build tooling (only the bundle ships)
+src/**
+esbuild.mjs
+tsconfig.json
+**/*.ts
+**/*.map
+.vscode-test/**
+
+# Repo-level noise
+../../node_modules/**
+node_modules/**
+.gitignore
+.eslintcache
+
+# Raw design assets (packaged icon lives in media/icon.png)
+media/*.svg
+media/src/**
+
+# Keep: dist/**, media/icon.png, package.json, README.md, CHANGELOG.md, LICENSE

@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Verify · Build · Package · Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      - name: Quality gates
+        run: npm run verify
+
+      - name: Assert tag matches package version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG pkg=$PKG"
+          test "$TAG" = "$PKG"
+
+      - name: Build CLI + extension
+        run: npm run build
+
+      - name: Package + smoke-test the VSIX
+        run: |
+          npm run package:vsix
+          npm run verify:vsix
+
+      - name: Create GitHub Release with VSIX + checksums
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.vsix
+            artifacts/*.vsix.sha256
+
+      - name: Publish CLI to npm (guarded)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: npm publish --workspace @dfg/cli --access public || echo "npm publish skipped/failed (non-fatal)"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

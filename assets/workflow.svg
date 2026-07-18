@@ -1,0 +1,75 @@
+<svg width="960" height="470" viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DocForge generation workflow diagram">
+  <style>
+    .lbl { font-family:Segoe UI, Helvetica, Arial, sans-serif; fill:#1f2328; }
+    .muted { fill:#57606a; }
+    .h { font-weight:700; }
+    .step { fill:#f6f2ff; stroke:#c4b5fd; stroke-width:2; }
+    .fb { fill:#eefcf3; stroke:#86efac; stroke-width:2; }
+  </style>
+  <rect width="960" height="470" fill="#ffffff"/>
+  <text x="40" y="44" class="lbl h" font-size="24">Generation workflow — graceful degradation is the product</text>
+
+  <rect x="40" y="72" width="150" height="58" rx="10" class="step"/>
+  <text x="115" y="100" class="lbl h" font-size="15" text-anchor="middle">Prompt</text>
+  <text x="115" y="120" class="lbl muted" font-size="12" text-anchor="middle">+ format/tone…</text>
+
+  <rect x="220" y="72" width="150" height="58" rx="10" class="step"/>
+  <text x="295" y="100" class="lbl h" font-size="15" text-anchor="middle">DocSpec</text>
+  <text x="295" y="120" class="lbl muted" font-size="12" text-anchor="middle">Zod-validated</text>
+
+  <!-- ladder -->
+  <text x="40" y="176" class="lbl h" font-size="15">Priority ladder — first available wins, each failure falls through:</text>
+  <g>
+    <rect x="40"  y="192" width="200" height="54" rx="10" class="step"/>
+    <text x="140" y="216" class="lbl h" font-size="14" text-anchor="middle">1 · LM API</text>
+    <text x="140" y="235" class="lbl muted" font-size="11" text-anchor="middle">Copilot / any LM provider</text>
+
+    <rect x="256" y="192" width="200" height="54" rx="10" class="step"/>
+    <text x="356" y="216" class="lbl h" font-size="14" text-anchor="middle">2 · Extension</text>
+    <text x="356" y="235" class="lbl muted" font-size="11" text-anchor="middle">best-effort ext API</text>
+
+    <rect x="472" y="192" width="200" height="54" rx="10" class="step"/>
+    <text x="572" y="216" class="lbl h" font-size="14" text-anchor="middle">3 · BYO key</text>
+    <text x="572" y="235" class="lbl muted" font-size="11" text-anchor="middle">Anthropic / OpenAI</text>
+
+    <rect x="688" y="192" width="232" height="54" rx="10" class="fb"/>
+    <text x="804" y="216" class="lbl h" font-size="14" text-anchor="middle">4 · Template (always)</text>
+    <text x="804" y="235" class="lbl muted" font-size="11" text-anchor="middle">deterministic · offline</text>
+  </g>
+
+  <g stroke="#8b949e" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M190 101 H218"/>
+    <path d="M295 130 V150 H140 V190"/>
+    <path d="M240 219 H254"/>
+    <path d="M456 219 H470"/>
+    <path d="M672 219 H686"/>
+  </g>
+  <text x="248" y="184" class="lbl muted" font-size="11">fail ↓</text>
+  <text x="464" y="184" class="lbl muted" font-size="11">fail ↓</text>
+  <text x="680" y="184" class="lbl muted" font-size="11">fail ↓</text>
+
+  <!-- validate/repair/finalize -->
+  <rect x="40" y="300" width="270" height="58" rx="10" class="step"/>
+  <text x="175" y="326" class="lbl h" font-size="14" text-anchor="middle">Validate → 1 bounded repair</text>
+  <text x="175" y="346" class="lbl muted" font-size="11" text-anchor="middle">md lint · html sanitize + parse</text>
+
+  <rect x="340" y="300" width="270" height="58" rx="10" class="step"/>
+  <text x="475" y="326" class="lbl h" font-size="14" text-anchor="middle">Finalize + sanitize</text>
+  <text x="475" y="346" class="lbl muted" font-size="11" text-anchor="middle">themed doc · preview · provenance</text>
+
+  <rect x="640" y="300" width="280" height="58" rx="10" class="fb"/>
+  <text x="780" y="326" class="lbl h" font-size="14" text-anchor="middle">Deliverable</text>
+  <text x="780" y="346" class="lbl muted" font-size="11" text-anchor="middle">.md source or full .html document</text>
+
+  <g stroke="#8b949e" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M804 246 V274 H175 V298"/>
+    <path d="M310 329 H338"/>
+    <path d="M610 329 H638"/>
+  </g>
+
+  <text x="40" y="410" class="lbl muted" font-size="12">Every path is provenance-tagged ("Generating with: …"). The CLI omits the editor-only LM API and extension paths.</text>
+
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#8b949e"/></marker>
+  </defs>
+</svg>

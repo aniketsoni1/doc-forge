@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src vscode-resource: https: data:; style-src 'nonce-LMjCyJfbxwvTj9RHyIkQ2H9IrwCi19lZ'; script-src 'nonce-LMjCyJfbxwvTj9RHyIkQ2H9IrwCi19lZ'" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Acme</title>
+<style nonce="LMjCyJfbxwvTj9RHyIkQ2H9IrwCi19lZ">:root {
+  color-scheme: light dark;
+  --df-bg: #ffffff;
+  --df-fg: #1f2328;
+  --df-muted: #57606a;
+  --df-accent: #7c3aed;
+  --df-border: #d0d7de;
+  --df-code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --df-bg: #0d1117;
+    --df-fg: #e6edf3;
+    --df-muted: #9198a1;
+    --df-accent: #c4b5fd;
+    --df-border: #30363d;
+    --df-code-bg: #161b22;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--df-bg);
+  color: var(--df-fg);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+.docforge-doc {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+.docforge-doc h1, .docforge-doc h2, .docforge-doc h3 { line-height: 1.25; margin-top: 1.8em; }
+.docforge-doc h1 { font-size: 2rem; border-bottom: 1px solid var(--df-border); padding-bottom: .3em; }
+.docforge-doc h2 { font-size: 1.5rem; border-bottom: 1px solid var(--df-border); padding-bottom: .3em; }
+.docforge-doc a { color: var(--df-accent); }
+.docforge-doc code {
+  background: var(--df-code-bg);
+  padding: .2em .4em;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em;
+}
+.docforge-doc pre {
+  background: var(--df-code-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+}
+.docforge-doc pre code { background: none; padding: 0; }
+.docforge-doc blockquote {
+  margin: 1em 0;
+  padding: 0 1em;
+  color: var(--df-muted);
+  border-left: .25em solid var(--df-border);
+}
+.docforge-doc table { border-collapse: collapse; width: 100%; }
+.docforge-doc th, .docforge-doc td { border: 1px solid var(--df-border); padding: .5em .75em; }
+.docforge-doc img { max-width: 100%; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .docforge-doc { max-width: none; padding: 0; }
+  .docforge-doc a { color: #000; text-decoration: underline; }
+  .docforge-doc pre, .docforge-doc code { background: #f2f2f2; }
+}
+.df-toolbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; gap: .5rem; align-items: center;
+  padding: .5rem .75rem;
+  background: var(--vscode-editorWidget-background, #1e1e1e);
+  border-bottom: 1px solid var(--vscode-editorWidget-border, #333);
+  font-family: var(--vscode-font-family, sans-serif);
+}
+.df-toolbar button {
+  font: inherit; cursor: pointer;
+  color: var(--vscode-button-foreground, #fff);
+  background: var(--vscode-button-background, #0e639c);
+  border: none; border-radius: 4px; padding: .35rem .8rem;
+}
+.df-toolbar button.secondary {
+  color: var(--vscode-button-secondaryForeground, #fff);
+  background: var(--vscode-button-secondaryBackground, #3a3d41);
+}
+.df-toolbar .df-prov {
+  margin-left: auto; opacity: .8; font-size: .85em;
+  color: var(--vscode-descriptionForeground, #999);
+}
+</style>
+</head>
+<body>
+<div class="df-toolbar" role="toolbar" aria-label="DocForge actions">
+  <button id="df-insert" type="button">Insert into editor</button>
+  <button id="df-save" type="button" class="secondary">Save as…</button>
+  <button id="df-regen" type="button" class="secondary">Regenerate</button>
+  <span class="df-prov">Generating with: Built-in templates</span>
+</div>
+<main class="docforge-doc" aria-label="Document preview">
+<h1>Acme</h1>
+<blockquote>
+<p>This document covers a CLI tool called Acme.</p>
+</blockquote>
+<h2>Overview</h2>
+<p>It describes the overview of a CLI tool called Acme, so readers can act on it with confidence.</p>
+<p>Replace this placeholder with the specifics of a CLI tool called Acme; DocForge produced the structure so you can focus on the content.</p>
+<h2>Features</h2>
+<ul>
+<li>fast</li>
+<li>tiny</li>
+<li>typed</li>
+</ul>
+<h2>Installation</h2>
+<pre><code class="language-bash">npm install acme
+</code></pre>
+<h2>Usage</h2>
+<pre><code class="language-bash">acme --help
+</code></pre>
+<h2>Contributing</h2>
+<p>Contributions are welcome. Please open an issue to discuss substantial changes before submitting a pull request.</p>
+<h2>License</h2>
+<p>Apache-2.0</p>
+
+</main>
+<script nonce="LMjCyJfbxwvTj9RHyIkQ2H9IrwCi19lZ">
+  const vscode = acquireVsCodeApi();
+  const send = (type) => vscode.postMessage({ type });
+  document.getElementById('df-insert').addEventListener('click', () => send('insert'));
+  document.getElementById('df-save').addEventListener('click', () => send('save'));
+  document.getElementById('df-regen').addEventListener('click', () => send('regenerate'));
+</script>
+</body>
+</html>

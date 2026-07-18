@@ -1,0 +1,49 @@
+{
+  "name": "docforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic-first document generator: a prompt in, a polished Markdown or HTML file out. One TypeScript core, a CLI, and a VS Code extension.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "aniketsoni1",
+  "homepage": "https://github.com/aniketsoni1/docforge#readme",
+  "repository": { "type": "git", "url": "https://github.com/aniketsoni1/docforge.git" },
+  "bugs": { "url": "https://github.com/aniketsoni1/docforge/issues" },
+  "engines": { "node": ">=20" },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "docforge": "tsx apps/cli/src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:ext": "tsc -p apps/vscode-extension/tsconfig.json --noEmit",
+    "lint": "eslint \"packages/**/*.ts\" \"apps/**/*.ts\" \"scripts/**/*.mjs\"",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "tsx scripts/smoke.mjs",
+    "build:cli": "node scripts/build-cli.mjs",
+    "build:ext": "node apps/vscode-extension/esbuild.mjs --production",
+    "build": "npm run build:cli && npm run build:ext",
+    "package:vsix": "node scripts/package-vsix.mjs",
+    "verify:vsix": "node scripts/verify-vsix.mjs",
+    "verify": "npm run typecheck && npm run typecheck:ext && npm run lint && npm run test && npm run smoke",
+    "clean": "rm -rf dist artifacts **/*.tsbuildinfo apps/vscode-extension/dist"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^20.14.0",
+    "@types/sanitize-html": "^2.13.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.1.0",
+    "esbuild": "^0.23.0",
+    "eslint": "^9.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.5.4",
+    "typescript-eslint": "^8.2.0",
+    "vite-tsconfig-paths": "^5.0.0",
+    "vitest": "^2.0.5"
+  }
+}
