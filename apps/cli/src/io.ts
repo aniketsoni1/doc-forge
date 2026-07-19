@@ -1,6 +1,5 @@
 import { readFile, writeFile, access, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { createInterface } from 'node:readline/promises';
 import pc from 'picocolors';
 
 /** Injectable I/O boundary so command logic is unit-testable without real fs/tty. */
@@ -23,14 +22,21 @@ export function nodeIo(overrides: Partial<IoContext> = {}): IoContext {
     interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY),
     stdout: (t) => process.stdout.write(`${t}\n`),
     stderr: (t) => process.stderr.write(`${t}\n`),
-    async confirm(question) {
-      const rl = createInterface({ input: process.stdin, output: process.stdout });
-      try {
-        const answer = (await rl.question(`${question} (y/N) `)).trim().toLowerCase();
-        return answer === 'y' || answer === 'yes';
-      } finally {
-        rl.close();
-      }
+    confirm(question) {
+      // Event-based stdin read (no node:readline) so the CLI's types stay stable
+      // across @types/node major versions.
+      process.stdout.write(`${question} (y/N) `);
+      return new Promise<boolean>((resolve) => {
+        const stdin = process.stdin;
+        const onData = (chunk: Buffer): void => {
+          stdin.off('data', onData);
+          stdin.pause();
+          const answer = chunk.toString('utf8').trim().toLowerCase();
+          resolve(answer === 'y' || answer === 'yes');
+        };
+        stdin.resume();
+        stdin.once('data', onData);
+      });
     },
     async fileExists(path) {
       try {
