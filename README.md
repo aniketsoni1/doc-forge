@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="assets/hero.png" alt="DocForge — prompt in, polished Markdown or HTML out" width="820" />
+  <img src="assets/hero.png" alt="DocForge - prompt in, polished Markdown or HTML out" width="820" />
 </p>
 
 <p align="center">
-  <a href="https://github.com/aniketsoni1/docforge/actions/workflows/ci.yml"><img src="https://github.com/aniketsoni1/docforge/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <a href="https://github.com/aniketsoni1/doc-forge/actions/workflows/ci.yml"><img src="https://github.com/aniketsoni1/doc-forge/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/node-%3E%3D20-3c873a.svg" alt="Node >= 20" />
@@ -12,7 +12,7 @@
 
 # DocForge
 
-**Type a prompt, get a polished `.md` or `.html` file — with a live preview.** DocForge is a
+**Type a prompt, get a polished `.md` or `.html` file - with a live preview.** DocForge is a
 deterministic-first document generator. It uses whatever AI capability you already have and **always
 has a working offline fallback**, so it never hard-fails just because no AI is installed.
 
@@ -21,7 +21,7 @@ extension**.
 
 ## Why DocForge
 
-- **Graceful degradation is the product.** Every failure — no model, no key, quota, offline — falls
+- **Graceful degradation is the product.** Every failure - no model, no key, quota, offline - falls
   through to the next generator and ends at a deterministic template. You always get a document.
 - **Provenance is never a mystery.** DocForge always tells you which generator ran
   (`Generating with: Copilot (VS Code LM API)` / `BYO key` / `Built-in templates`).
@@ -48,7 +48,7 @@ DocForge resolves the best available generator in this order and uses the first 
 | 1 | **VS Code Language Model API** | Editor | Sanctioned, vendor-neutral (Copilot + others) |
 | 2 | **Compatible AI extension** | Editor | Best-effort, via a documented `generateDocument` API |
 | 3 | **Bring-your-own-key** | CLI + Editor | Anthropic / OpenAI; key in SecretStorage / env |
-| 4 | **Built-in templates** | Everywhere | Deterministic, offline, always available — the tested path |
+| 4 | **Built-in templates** | Everywhere | Deterministic, offline, always available - the tested path |
 
 The CLI omits the editor-only paths (1 and 2). If a generator errors or produces output that a single
 bounded repair pass can't fix, DocForge falls through to the next one.
@@ -56,7 +56,7 @@ bounded repair pass can't fix, DocForge falls through to the next one.
 ## Quick start
 
 ```bash
-git clone https://github.com/aniketsoni1/docforge.git
+git clone https://github.com/aniketsoni1/doc-forge.git
 cd docforge
 npm install
 npm run verify          # typecheck (src + ext) + lint + tests + smoke
@@ -124,7 +124,7 @@ are never written to settings or logs. See [`SECURITY.md`](SECURITY.md).
 
 ## Architecture
 
-Path-alias monorepo (`@dfg/* → packages/*/src`); no per-package build in dev — tsx, Vitest, and esbuild
+Path-alias monorepo (`@dfg/* → packages/*/src`); no per-package build in dev - tsx, Vitest, and esbuild
 resolve the aliases directly.
 
 ![Architecture](assets/architecture.png)
@@ -166,12 +166,12 @@ Genuine output from the deterministic template path (regenerate with `npx tsx sc
 
 Open these in a browser to see the real rendered output:
 
-- [`samples/q3-report.html`](samples/q3-report.html) — themed, sanitized HTML document
-- [`samples/preview-webview.html`](samples/preview-webview.html) — the extension's actual CSP preview page
+- [`samples/q3-report.html`](samples/q3-report.html) - themed, sanitized HTML document
+- [`samples/preview-webview.html`](samples/preview-webview.html) - the extension's actual CSP preview page
 - [`samples/acme-readme.md`](samples/acme-readme.md), [`samples/acme-changelog.md`](samples/acme-changelog.md)
 
 > **On UI screenshots:** the icon, hero, logo, and diagrams above are original, reproducibly generated
-> assets. Screenshots of the running extension inside the VS Code UI require a live editor session —
+> assets. Screenshots of the running extension inside the VS Code UI require a live editor session -
 > a precise, repeatable capture checklist is in [`docs/CAPTURE.md`](docs/CAPTURE.md). This repository
 > deliberately ships **no placeholder or mocked UI images**.
 
@@ -181,7 +181,7 @@ Open these in a browser to see the real rendered output:
 npm run build:ext
 npm run package:vsix       # -> artifacts/docforge-<version>.vsix (+ .sha256)
 npm run verify:vsix        # audits the packaged contents
-code --install-extension artifacts/docforge-0.1.0.vsix
+code --install-extension artifacts/docforge-0.1.1.vsix
 ```
 
 ## Limitations

@@ -12,6 +12,11 @@ node_modules/**
 .gitignore
 .eslintcache
 
+# FUSE / OS ghost temp files
+**/.fuse_hidden*
+.fuse_hidden*
+.DS_Store
+
 # Raw design assets (packaged icon lives in media/icon.png)
 media/*.svg
 media/src/**

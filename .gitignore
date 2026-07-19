@@ -11,3 +11,10 @@ coverage/
 *.log
 .vscode-test/
 .docforge-cache/
+
+# Vitest temp config artifacts
+vitest.config.ts.timestamp-*.mjs
+
+# FUSE ghost temp files (sandbox only)
+.fuse_hidden*
+**/.fuse_hidden*

@@ -31,7 +31,7 @@ function stripCodeFence(text: string): string {
 
 /**
  * Bring-your-own-key generator. Works in both the CLI and the extension. The key
- * is supplied by the host (SecretStorage / OS keychain / env) — never stored here.
+ * is supplied by the host (SecretStorage / OS keychain / env) - never stored here.
  * Unavailable (not thrown) when no key is present, so the ladder falls through.
  */
 export class ByokGenerator implements Generator {

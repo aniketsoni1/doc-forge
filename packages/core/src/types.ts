@@ -67,7 +67,7 @@ export interface Capability {
 }
 
 /**
- * The single generation seam. Every path — AI or deterministic — implements this.
+ * The single generation seam. Every path - AI or deterministic - implements this.
  * Implementations must never throw from {@link capability}; only from {@link generate}.
  */
 export interface Generator {

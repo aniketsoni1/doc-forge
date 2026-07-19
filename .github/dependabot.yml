@@ -9,7 +9,7 @@ updates:
       dev-tooling:
         patterns: ["eslint*", "@eslint/*", "typescript-eslint", "esbuild", "tsx"]
     ignore:
-      # Dev-tool majors have broken CI before — bump these deliberately, not automatically.
+      # Dev-tool majors have broken CI before - bump these deliberately, not automatically.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       - dependency-name: "vitest"

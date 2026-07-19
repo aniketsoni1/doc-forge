@@ -49,8 +49,8 @@ export async function probeCapabilities(generators: Generator[]): Promise<Capabi
 }
 
 /**
- * Resolve the best available generator and produce a document. Every failure —
- * unavailable, offline, error, or invalid output that a single repair can't fix —
+ * Resolve the best available generator and produce a document. Every failure -
+ * unavailable, offline, error, or invalid output that a single repair can't fix -
  * falls through to the next generator, always ending at the template fallback.
  */
 export async function resolveAndGenerate(

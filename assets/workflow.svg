@@ -7,7 +7,7 @@
     .fb { fill:#eefcf3; stroke:#86efac; stroke-width:2; }
   </style>
   <rect width="960" height="470" fill="#ffffff"/>
-  <text x="40" y="44" class="lbl h" font-size="24">Generation workflow — graceful degradation is the product</text>
+  <text x="40" y="44" class="lbl h" font-size="24">Generation workflow - graceful degradation is the product</text>
 
   <rect x="40" y="72" width="150" height="58" rx="10" class="step"/>
   <text x="115" y="100" class="lbl h" font-size="15" text-anchor="middle">Prompt</text>
@@ -18,7 +18,7 @@
   <text x="295" y="120" class="lbl muted" font-size="12" text-anchor="middle">Zod-validated</text>
 
   <!-- ladder -->
-  <text x="40" y="176" class="lbl h" font-size="15">Priority ladder — first available wins, each failure falls through:</text>
+  <text x="40" y="176" class="lbl h" font-size="15">Priority ladder - first available wins, each failure falls through:</text>
   <g>
     <rect x="40"  y="192" width="200" height="54" rx="10" class="step"/>
     <text x="140" y="216" class="lbl h" font-size="14" text-anchor="middle">1 · LM API</text>

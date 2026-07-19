@@ -9,7 +9,7 @@ released version.
 
 Please **do not** open a public issue for security reports. Instead, use GitHub's
 private vulnerability reporting on this repository
-(https://github.com/aniketsoni1/docforge/security/advisories/new), or email the
+(https://github.com/aniketsoni1/doc-forge/security/advisories/new), or email the
 maintainer listed on the GitHub profile `aniketsoni1`.
 
 We aim to acknowledge reports within a few days.

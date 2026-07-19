@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question / discussion
-    url: https://github.com/aniketsoni1/docforge/discussions
+    url: https://github.com/aniketsoni1/doc-forge/discussions
     about: Ask questions and share ideas here.
   - name: Security report
-    url: https://github.com/aniketsoni1/docforge/security/advisories/new
+    url: https://github.com/aniketsoni1/doc-forge/security/advisories/new
     about: Please report vulnerabilities privately (see SECURITY.md).

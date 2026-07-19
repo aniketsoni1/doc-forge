@@ -1,21 +1,21 @@
 {
   "name": "docforge-vscode",
-  "displayName": "DocForge",
-  "description": "Generate polished Markdown or HTML documents from a prompt — using your available AI, with an always-on offline fallback.",
-  "version": "0.1.0",
+  "displayName": "DocForge - Document Generator",
+  "description": "Generate polished Markdown or HTML documents from a prompt - using your available AI, with an always-on offline fallback.",
+  "version": "0.1.1",
   "private": true,
   "type": "commonjs",
-  "publisher": "aniketsoni1",
+  "publisher": "AniketSoni",
   "license": "Apache-2.0",
   "author": "aniketsoni1",
-  "homepage": "https://github.com/aniketsoni1/docforge#readme",
+  "homepage": "https://github.com/aniketsoni1/doc-forge#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aniketsoni1/docforge.git",
+    "url": "https://github.com/aniketsoni1/doc-forge.git",
     "directory": "apps/vscode-extension"
   },
   "bugs": {
-    "url": "https://github.com/aniketsoni1/docforge/issues"
+    "url": "https://github.com/aniketsoni1/doc-forge/issues"
   },
   "engines": {
     "vscode": "^1.90.0"

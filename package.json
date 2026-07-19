@@ -1,14 +1,14 @@
 {
   "name": "docforge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Deterministic-first document generator: a prompt in, a polished Markdown or HTML file out. One TypeScript core, a CLI, and a VS Code extension.",
   "type": "module",
   "license": "Apache-2.0",
   "author": "aniketsoni1",
-  "homepage": "https://github.com/aniketsoni1/docforge#readme",
-  "repository": { "type": "git", "url": "https://github.com/aniketsoni1/docforge.git" },
-  "bugs": { "url": "https://github.com/aniketsoni1/docforge/issues" },
+  "homepage": "https://github.com/aniketsoni1/doc-forge#readme",
+  "repository": { "type": "git", "url": "https://github.com/aniketsoni1/doc-forge.git" },
+  "bugs": { "url": "https://github.com/aniketsoni1/doc-forge/issues" },
   "engines": { "node": ">=20" },
   "workspaces": [
     "packages/*",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^26.1.1",
+    "@types/node": "^20.14.0",
     "@types/sanitize-html": "^2.13.0",
     "@types/vscode": "^1.90.0",
     "@vscode/vsce": "^3.1.0",

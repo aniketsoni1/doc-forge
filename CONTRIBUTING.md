@@ -6,13 +6,13 @@ document generator with a small, typed core and two thin UIs (CLI + VS Code).
 ## Getting started
 
 ```bash
-git clone https://github.com/aniketsoni1/docforge.git
+git clone https://github.com/aniketsoni1/doc-forge.git
 cd docforge
 npm install
 npm run verify   # typecheck (src + extension) + lint + tests + smoke
 ```
 
-There is **no build step in development** — a path-alias monorepo (`@dfg/* →
+There is **no build step in development** - a path-alias monorepo (`@dfg/* →
 packages/*/src`) is resolved by tsx, Vitest, and esbuild directly.
 
 ## Ground rules
@@ -42,6 +42,6 @@ packages/*/src`) is resolved by tsx, Vitest, and esbuild directly.
 1. Fork and branch from `main`.
 2. Run `npm run verify` and make sure it is green.
 3. Describe the change and link any related issue.
-4. Be kind in review — see `CODE_OF_CONDUCT.md`.
+4. Be kind in review - see `CODE_OF_CONDUCT.md`.
 
 By contributing you agree your contributions are licensed under Apache-2.0.

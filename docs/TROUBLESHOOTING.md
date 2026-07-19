@@ -11,7 +11,7 @@ and that a model is available (`vscode.lm`) or an API key is set via
 **DocForge: Set API Key**. The preview's provenance line shows which path ran.
 
 **HTML output lost some tags.**
-That is the sanitizer doing its job — scripts, inline handlers, and unsafe URLs
+That is the sanitizer doing its job - scripts, inline handlers, and unsafe URLs
 are removed. A "Some unsafe HTML was removed" warning is expected for model HTML.
 
 **`npm run lint` seems slow.**

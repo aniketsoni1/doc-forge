@@ -80,7 +80,7 @@ async function newDocumentFlow(context: vscode.ExtensionContext): Promise<void> 
   const trusted = vscode.workspace.isTrusted;
 
   const prompt = await vscode.window.showInputBox({
-    title: 'DocForge — New Document from Prompt',
+    title: 'DocForge - New Document from Prompt',
     prompt: 'Describe the document you want to generate',
     placeHolder: 'e.g. README for a CLI tool called Acme with features: fast, tiny, typed'
   });
@@ -97,7 +97,7 @@ async function newDocumentFlow(context: vscode.ExtensionContext): Promise<void> 
 
   if (!trusted) {
     void vscode.window.showWarningMessage(
-      'Workspace is not trusted — DocForge used the offline template generator only.'
+      'Workspace is not trusted - DocForge used the offline template generator only.'
     );
   }
 
@@ -149,7 +149,7 @@ function showPreview(
 ): void {
   const panel = vscode.window.createWebviewPanel(
     'docforge.preview',
-    `DocForge — ${initial.document.title}`,
+    `DocForge - ${initial.document.title}`,
     vscode.ViewColumn.Beside,
     { enableScripts: true, retainContextWhenHidden: true }
   );
@@ -221,7 +221,7 @@ async function saveToFile(outcome: GenerationOutcome, format: DocFormat): Promis
 
 async function setApiKey(context: vscode.ExtensionContext): Promise<void> {
   const key = await vscode.window.showInputBox({
-    title: 'DocForge — Set API Key',
+    title: 'DocForge - Set API Key',
     prompt: 'Stored securely in VS Code SecretStorage; never written to settings.',
     password: true
   });

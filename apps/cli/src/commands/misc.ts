@@ -7,7 +7,7 @@ import { DEFAULT_CONFIG } from '@dfg/configuration';
 import { buildCliLadder } from '../ladder';
 import type { IoContext } from '../io';
 
-/** `docforge doctor` — report environment and generator availability. */
+/** `docforge doctor` - report environment and generator availability. */
 export async function runDoctor(io: IoContext): Promise<number> {
   const { generators, config, hasApiKey } = buildCliLadder(io.env);
   io.stdout(pc.bold('DocForge doctor'));
@@ -21,7 +21,7 @@ export async function runDoctor(io: IoContext): Promise<number> {
   for (const cap of caps) {
     const mark = cap.available ? pc.green('✓') : pc.dim('·');
     const net = cap.requiresNetwork ? pc.dim(' [network]') : '';
-    io.stdout(`  ${mark} ${cap.label}${net}${cap.detail ? pc.dim(` — ${cap.detail}`) : ''}`);
+    io.stdout(`  ${mark} ${cap.label}${net}${cap.detail ? pc.dim(` - ${cap.detail}`) : ''}`);
   }
   io.stdout('');
   io.stdout(pc.bold('Templates'));
@@ -31,7 +31,7 @@ export async function runDoctor(io: IoContext): Promise<number> {
   return 0;
 }
 
-/** `docforge init` — write a starter config file to the current directory. */
+/** `docforge init` - write a starter config file to the current directory. */
 export async function runInit(io: IoContext, opts: { force?: boolean; nonInteractive?: boolean }): Promise<number> {
   const target = resolve(io.cwd, 'docforge.config.json');
   const body = `${JSON.stringify(
@@ -61,7 +61,7 @@ export async function runInit(io: IoContext, opts: { force?: boolean; nonInterac
   return 0;
 }
 
-/** `docforge configure` — explain how to supply an API key (CLI uses env vars). */
+/** `docforge configure` - explain how to supply an API key (CLI uses env vars). */
 export function runConfigure(io: IoContext): number {
   const { hasApiKey, config } = buildCliLadder(io.env);
   io.stdout(pc.bold('Configuring DocForge (CLI)'));
@@ -75,7 +75,7 @@ export function runConfigure(io: IoContext): number {
   io.stdout(`  ${pc.cyan('DOCFORGE_MODEL')}     model id (current: ${config.model})`);
   io.stdout(`  ${pc.cyan('DOCFORGE_FORMAT')}    md | html`);
   io.stdout('');
-  io.stdout(hasApiKey ? pc.green('An API key is currently detected.') : pc.yellow('No API key detected — DocForge will use the built-in template generator.'));
+  io.stdout(hasApiKey ? pc.green('An API key is currently detected.') : pc.yellow('No API key detected - DocForge will use the built-in template generator.'));
   io.stdout(pc.dim('Without a key, everything still works offline via templates.'));
   return 0;
 }

@@ -27,7 +27,7 @@ npx tsx scripts/emit-samples.mjs
 
 ## Real VS Code UI screenshots (manual, reproducible)
 
-UI screenshots require a running VS Code with the extension installed — capture
+UI screenshots require a running VS Code with the extension installed - capture
 them like this and save PNGs into `assets/screenshots/`:
 
 1. `npm run build:ext && npm run package:vsix`
@@ -43,4 +43,4 @@ them like this and save PNGs into `assets/screenshots/`:
 
 Use consistent 1280×800 dimensions, include descriptive alt text in the README,
 and verify readability in both light and dark themes. Do not commit placeholder
-mockups — only real captures.
+mockups - only real captures.

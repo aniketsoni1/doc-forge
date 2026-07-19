@@ -6,9 +6,9 @@ sync.
 1. Update `version` in root `package.json`, `apps/cli/src/version.ts`, and
    `apps/vscode-extension/package.json` (all must match).
 2. Update `CHANGELOG.md` (root) and `apps/vscode-extension/CHANGELOG.md`.
-3. `npm run verify` — typecheck (src + ext) + lint + tests + smoke.
-4. `npm run build` — CLI and extension bundles.
-5. `npm run package:vsix && npm run verify:vsix` — build + audit the VSIX.
+3. `npm run verify` - typecheck (src + ext) + lint + tests + smoke.
+4. `npm run build` - CLI and extension bundles.
+5. `npm run package:vsix && npm run verify:vsix` - build + audit the VSIX.
 6. Commit, then tag: `git tag vX.Y.Z && git push --tags`.
 7. CI (`release.yml`, `extension.yml`) runs the gates, attaches the VSIX +
    checksum to the GitHub Release, and publishes **only if** the relevant secrets

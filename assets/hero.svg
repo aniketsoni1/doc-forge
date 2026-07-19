@@ -35,5 +35,5 @@
 
   <text x="470" y="286" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="104" font-weight="800" fill="#e6edf3">Doc<tspan fill="#c4b5fd">Forge</tspan></text>
   <text x="474" y="352" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="32" fill="#9198a1">Prompt in. Polished Markdown or HTML out.</text>
-  <text x="474" y="404" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="23" fill="#a78bfa">Uses your available AI — always falls back to templates.</text>
+  <text x="474" y="404" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="23" fill="#a78bfa">Uses your available AI - always falls back to templates.</text>
 </svg>

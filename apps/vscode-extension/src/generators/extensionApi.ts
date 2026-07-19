@@ -22,7 +22,7 @@ function isCompatible(api: unknown): api is DocForgeCompatibleApi {
 
 /**
  * Secondary, best-effort path: use another AI extension's *documented* exports if
- * it offers a compatible surface. Strictly guarded behind capability checks — we
+ * it offers a compatible surface. Strictly guarded behind capability checks - we
  * never assume another extension's internals. Prefer {@link LmApiGenerator}.
  */
 export class ExtensionGenerator implements Generator {
