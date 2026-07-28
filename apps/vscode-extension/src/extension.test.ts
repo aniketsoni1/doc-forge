@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import type { GenerationAttempt } from '@dfg/agent';
 import { parseInboundMessage, RequestTracker } from './protocol';
 import { describeFailure, describeFallback, formatDiagnostics } from './errors';
-import { defaultFileName, extensionFor, filtersFor, languageFor } from './naming';
+import {
+  defaultFileName,
+  extensionFor,
+  filtersFor,
+  languageFor,
+  formatForLanguage,
+  EDITABLE_LANGUAGES
+} from './naming';
 import { createNonce, renderWebviewHtml } from './webview';
 
 describe('parseInboundMessage', () => {
@@ -270,6 +277,61 @@ describe('renderWebviewHtml', () => {
     expect(html).toContain('role="toolbar"');
     expect(html).toContain('aria-label="DocForge actions"');
     expect(html).toContain('aria-live="polite"');
+  });
+});
+
+describe('streaming draft rendering', () => {
+  const base = {
+    title: 'Report',
+    bodyHtml: '<p>hello</p>',
+    provenance: 'Generating with: Built-in templates',
+    format: 'md' as const,
+    nonce: 'testnonce',
+    cspSource: 'vscode-resource:'
+  };
+
+  it('provides a dedicated draft element separate from the document', () => {
+    const html = renderWebviewHtml(base);
+    expect(html).toContain('id="df-draft"');
+    expect(html).toContain('class="df-draft"');
+    expect(html).toContain('aria-label="Streaming draft"');
+  });
+
+  it('renders the draft with textContent, never innerHTML', () => {
+    // Streamed text is not sanitized yet, so it must never be parsed as markup.
+    const html = renderWebviewHtml(base);
+    expect(html).toContain('draft.textContent');
+    // No assignment to innerHTML anywhere in the page script. A bare mention is
+    // fine (the code comments explain the rule); an assignment is the bug.
+    expect(html).not.toMatch(/\.innerHTML\s*=/);
+    expect(html).not.toMatch(/insertAdjacentHTML/);
+  });
+
+  it('uses a pre element so whitespace survives without markup', () => {
+    expect(renderWebviewHtml(base)).toContain('<pre class="df-draft"');
+  });
+
+  it('hides the finished document while a draft is streaming', () => {
+    const html = renderWebviewHtml(base);
+    expect(html).toContain('body.df-streaming .docforge-doc { display: none; }');
+  });
+
+  it('clears the draft when generation finishes', () => {
+    expect(renderWebviewHtml(base)).toContain("draft.textContent = ''");
+  });
+});
+
+describe('editing helpers', () => {
+  it('maps language ids to formats', () => {
+    expect(formatForLanguage('html')).toBe('html');
+    expect(formatForLanguage('markdown')).toBe('md');
+    expect(formatForLanguage('plaintext')).toBe('md');
+  });
+
+  it('offers editing for the documented language set', () => {
+    expect(EDITABLE_LANGUAGES).toContain('markdown');
+    expect(EDITABLE_LANGUAGES).toContain('html');
+    expect(EDITABLE_LANGUAGES).toContain('plaintext');
   });
 });
 

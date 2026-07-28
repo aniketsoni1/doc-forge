@@ -62,6 +62,21 @@ const CHROME_CSS = `
 .df-status[hidden] { display: none; }
 .df-note { color: var(--vscode-editorWarning-foreground, #cca700); }
 body.df-busy .docforge-doc { opacity: .6; }
+/* A streaming draft is rendered as pre-formatted text, never as HTML: it has
+   not been sanitized yet, so it must not be able to become live markup. */
+.df-draft {
+  display: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  padding: 1.5rem 1.25rem;
+  font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+  font-size: .9em;
+  color: var(--vscode-descriptionForeground, #999);
+  border-left: 3px solid var(--vscode-focusBorder, #0078d4);
+}
+body.df-streaming .df-draft { display: block; }
+body.df-streaming .docforge-doc { display: none; }
 `;
 
 /** Build a strict-CSP webview page around a sanitized document fragment. */
@@ -101,6 +116,7 @@ export function renderWebviewHtml(input: WebviewInput): string {
   </div>
 </div>
 <div class="df-status" id="df-status" role="status" aria-live="polite" hidden></div>
+<pre class="df-draft" id="df-draft" aria-label="Streaming draft"></pre>
 <main class="docforge-doc" aria-label="Document preview">
 ${input.bodyHtml}
 </main>
@@ -109,6 +125,7 @@ ${input.bodyHtml}
   const actionIds = ['df-insert', 'df-save', 'df-copy', 'df-regen'];
   const cancelBtn = document.getElementById('df-cancel');
   const status = document.getElementById('df-status');
+  const draft = document.getElementById('df-draft');
   let requestId = 0;
 
   const send = (type) => vscode.postMessage({ type: type, requestId: ++requestId });
@@ -121,6 +138,10 @@ ${input.bodyHtml}
     cancelBtn.hidden = !busy;
     status.hidden = !busy;
     status.textContent = busy ? 'Generating…' : '';
+    if (!busy) {
+      document.body.classList.remove('df-streaming');
+      draft.textContent = '';
+    }
   };
 
   document.getElementById('df-insert').addEventListener('click', () => send('insert'));
@@ -137,6 +158,13 @@ ${input.bodyHtml}
     if (!message || typeof message.type !== 'string') return;
     if (message.type === 'state') {
       setBusy(Boolean(message.busy));
+    } else if (message.type === 'draft') {
+      // textContent, never innerHTML: this text has not been sanitized yet.
+      document.body.classList.add('df-streaming');
+      draft.textContent = String(message.text || '');
+      status.hidden = false;
+      status.textContent = 'Streaming draft…';
+      draft.scrollTop = draft.scrollHeight;
     } else if (message.type === 'error') {
       setBusy(false);
       status.hidden = false;

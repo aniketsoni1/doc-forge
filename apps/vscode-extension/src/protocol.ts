@@ -20,7 +20,13 @@ export type InboundMessageType = InboundMessage['type'];
 /** Messages the host may send down to the webview. */
 export type OutboundMessage =
   | { type: 'state'; busy: boolean }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  /**
+   * A partial, in-progress result. Explicitly marked as a draft: streamed text
+   * has not been sanitized or validated yet, so the webview renders it as plain
+   * text and never as HTML, and the host never writes it to disk.
+   */
+  | { type: 'draft'; text: string };
 
 const INBOUND_TYPES: ReadonlySet<string> = new Set<InboundMessageType>([
   'insert',
