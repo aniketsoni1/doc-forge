@@ -7,9 +7,16 @@
   "license": "Apache-2.0",
   "author": "aniketsoni1",
   "homepage": "https://github.com/aniketsoni1/doc-forge#readme",
-  "repository": { "type": "git", "url": "https://github.com/aniketsoni1/doc-forge.git" },
-  "bugs": { "url": "https://github.com/aniketsoni1/doc-forge/issues" },
-  "engines": { "node": ">=20" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aniketsoni1/doc-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aniketsoni1/doc-forge/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -23,12 +30,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "tsx scripts/smoke.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
     "build:cli": "node scripts/build-cli.mjs",
     "build:ext": "node apps/vscode-extension/esbuild.mjs --production",
     "build": "npm run build:cli && npm run build:ext",
     "package:vsix": "node scripts/package-vsix.mjs",
     "verify:vsix": "node scripts/verify-vsix.mjs",
-    "verify": "npm run typecheck && npm run typecheck:ext && npm run lint && npm run test && npm run smoke",
+    "verify": "npm run typecheck && npm run typecheck:ext && npm run lint && npm run scan:secrets && npm run test && npm run smoke",
     "clean": "rm -rf dist artifacts **/*.tsbuildinfo apps/vscode-extension/dist"
   },
   "devDependencies": {
