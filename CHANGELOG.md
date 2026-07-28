@@ -5,6 +5,58 @@ All notable changes to DocForge are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Phase 1 (Stabilisation) of the improvement plan in [`docs/PLAN.md`](docs/PLAN.md).
+No breaking changes to existing behaviour; `Generator.generate` gained an optional
+second parameter, so existing implementations continue to compile.
+
+### Added
+
+- `ProviderError` with a closed code set (`auth`, `rate_limit`, `network`,
+  `unsupported_model`, `context_too_large`, `invalid_response`, `cancelled`,
+  `unavailable`, `content_rejected`, `unknown`), each carrying a recovery hint and
+  a retryability flag.
+- Credential redaction (`redactSecrets`, `redactKnownSecret`, `containsSecret`),
+  applied automatically to every `ProviderError` message.
+- `GenerationAttempt` records: the ladder now reports every generator it tried,
+  with status, timing, validation issues, repair outcome, and fallback reason.
+- Cancellation throughout the pipeline via an optional `AbortSignal` on
+  `Generator.generate`, bridged to VS Code's `CancellationToken` in the extension
+  and to `fetch` in the BYO-key generator, plus an independent request timeout.
+- `GeneratorFeatures` capability advertisement (streaming, cancellation, cost
+  reporting, system prompts, model discovery, offline, max context).
+- Token, cost, and duration reporting, with an overridable price table and
+  explicit estimated-vs-measured labelling.
+- `DocForge: Run Diagnostics` command and a DocForge output channel.
+- Copy action, cancel button, busy states, and a diff-before-overwrite prompt in
+  the preview.
+- Grouped extension settings (Generation / Providers / Reporting) plus
+  `docforge.requestTimeoutMs` and `docforge.pricing`.
+- `docs/AUDIT.md` and `docs/PLAN.md`.
+
+### Fixed
+
+- `docforge.config.json` is now actually read. `docforge init` previously wrote a
+  file that nothing consumed.
+- `config.aiEnabled` is now honoured by the CLI instead of being inert.
+- Provider error bodies are redacted and truncated before being surfaced, rather
+  than interpolated verbatim into an error message.
+- Rapid regeneration can no longer race: a superseded result is discarded instead
+  of overwriting newer output.
+- Webview messages are validated at runtime against a shared schema instead of
+  being trusted on the strength of a TypeScript annotation alone.
+- `estimateTokens` / `estimateCostUsd` were dead code; they are now wired through.
+- Cancelling now stops the ladder rather than silently falling back to templates.
+- Dropped `retainContextWhenHidden` from the preview panel.
+
+### Changed
+
+- Test suite grown from 70 to 200+ tests, including the first coverage of the
+  VS Code extension app.
+- README and `docs/ARCHITECTURE.md` corrected where they overstated or misnamed
+  what was implemented.
+
 ## [0.1.1] - 2026-07-18
 
 ### Changed
