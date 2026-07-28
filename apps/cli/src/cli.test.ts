@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IoContext } from './io';
-import { runCreate } from './commands/create';
-import { runDoctor, runInit } from './commands/misc';
+import { runCreate, resolveOutputPath } from './commands/create';
+import { runConfigure, runDoctor, runInit } from './commands/misc';
 import { buildProgram } from './program';
 
 interface MemoryIo extends IoContext {
@@ -112,5 +112,93 @@ describe('docforge init', () => {
     const code = await runInit(io, { nonInteractive: true });
     expect(code).toBe(0);
     expect(io.files.get('/work/docforge.config.json')).toContain('defaultFormat');
+  });
+
+  it('writes a config file that the very next run reads back', async () => {
+    const io = memoryIo();
+    await runInit(io, { nonInteractive: true });
+    await runDoctor(io);
+    expect(io.out.join('\n')).toContain('docforge.config.json');
+  });
+
+  it('refuses to clobber an existing config without --force', async () => {
+    const io = memoryIo();
+    io.files.set('/work/docforge.config.json', '{}');
+    expect(await runInit(io, { nonInteractive: true })).toBe(1);
+    expect(io.files.get('/work/docforge.config.json')).toBe('{}');
+  });
+});
+
+describe('docforge.config.json', () => {
+  it('changes the default format for a run', async () => {
+    const io = memoryIo();
+    io.files.set('/work/docforge.config.json', '{"defaultFormat":"html"}');
+    const code = await runCreate({ prompt: 'Report on sales', ai: false }, io);
+    expect(code).toBe(0);
+    expect(io.out.join('\n')).toContain('<!doctype html>');
+  });
+
+  it('is overridden by an explicit flag', async () => {
+    const io = memoryIo();
+    io.files.set('/work/docforge.config.json', '{"defaultFormat":"html"}');
+    await runCreate({ prompt: 'Report on sales', format: 'md', ai: false }, io);
+    expect(io.out.join('\n')).not.toContain('<!doctype html>');
+  });
+
+  it('reports a malformed config but still produces a document', async () => {
+    const io = memoryIo();
+    io.files.set('/work/docforge.config.json', '{ broken');
+    const code = await runCreate({ prompt: 'readme for Acme', ai: false }, io);
+    expect(code).toBe(0);
+    expect(io.err.join('\n')).toContain('not valid JSON');
+    expect(io.out.join('\n')).toContain('# ');
+  });
+
+  it('reports an unknown key rather than ignoring a typo', async () => {
+    const io = memoryIo();
+    io.files.set('/work/docforge.config.json', '{"defaultFromat":"html"}');
+    await runCreate({ prompt: 'readme', ai: false }, io);
+    expect(io.err.join('\n')).toContain('docforge.config.json');
+  });
+
+  it('is absent by default, and doctor says so', async () => {
+    const io = memoryIo();
+    await runDoctor(io);
+    expect(io.out.join('\n')).toContain('none (using defaults)');
+  });
+});
+
+describe('resolveOutputPath', () => {
+  it('infers an extension from the format', () => {
+    expect(resolveOutputPath('/work', 'out', 'md').target).toBe('/work/out.md');
+    expect(resolveOutputPath('/work', 'out', 'html').target).toBe('/work/out.html');
+  });
+
+  it('keeps an extension the user already supplied', () => {
+    expect(resolveOutputPath('/work', 'notes.markdown', 'md').target).toBe('/work/notes.markdown');
+  });
+
+  it('reports a path that escapes the working directory', () => {
+    const outside = resolveOutputPath('/work', '../elsewhere/out', 'md');
+    expect(outside.escapesCwd).toBe(true);
+    expect(outside.display).toBe('/elsewhere/out.md');
+
+    const inside = resolveOutputPath('/work', 'docs/out', 'md');
+    expect(inside.escapesCwd).toBe(false);
+    expect(inside.display).toBe('docs/out.md');
+  });
+
+  it('treats an absolute path outside the cwd as escaping', () => {
+    expect(resolveOutputPath('/work', '/tmp/out', 'md').escapesCwd).toBe(true);
+  });
+});
+
+describe('docforge configure', () => {
+  it('explains credential sources and precedence', async () => {
+    const io = memoryIo();
+    expect(await runConfigure(io)).toBe(0);
+    const text = io.out.join('\n');
+    expect(text).toContain('ANTHROPIC_API_KEY');
+    expect(text).toContain('Precedence');
   });
 });
