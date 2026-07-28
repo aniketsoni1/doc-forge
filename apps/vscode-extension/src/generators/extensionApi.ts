@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
-import type { Capability, DocResult, DocSpec, Generator } from '@dfg/core';
+import type {
+  Capability,
+  DocResult,
+  DocSpec,
+  GenerateOptions,
+  Generator
+} from '@dfg/core';
+import { ProviderError } from '@dfg/core';
 
 /** A documented, opt-in surface a third-party AI extension may expose. */
 interface DocForgeCompatibleApi {
@@ -47,19 +54,55 @@ export class ExtensionGenerator implements Generator {
       available: Boolean(found),
       label: found ? `${found.label} extension` : 'AI extension (none compatible)',
       detail: found ? undefined : 'No installed extension exposes a compatible generateDocument() API',
-      requiresNetwork: true
+      requiresNetwork: true,
+      features: {
+        // A third-party extension's surface is opaque: assume nothing.
+        streaming: false,
+        cancellation: false,
+        costReporting: false,
+        offline: false
+      }
     };
   }
 
-  async generate(spec: DocSpec): Promise<DocResult> {
+  async generate(spec: DocSpec, options: GenerateOptions = {}): Promise<DocResult> {
     const found = await this.findCompatible();
-    if (!found) throw new Error('No compatible AI extension is available.');
-    const content = await found.api.generateDocument({
-      prompt: spec.prompt,
-      format: spec.format,
-      tone: spec.tone,
-      length: spec.length
-    });
+    if (!found) {
+      throw new ProviderError('unavailable', 'No compatible AI extension is available.', {
+        generatorId: this.id
+      });
+    }
+
+    let content: string;
+    try {
+      content = await found.api.generateDocument({
+        prompt: spec.prompt,
+        format: spec.format,
+        tone: spec.tone,
+        length: spec.length
+      });
+    } catch (err) {
+      throw new ProviderError(
+        'unknown',
+        `${found.label} extension failed: ${err instanceof Error ? err.message : String(err)}`,
+        { generatorId: this.id, cause: err }
+      );
+    }
+
+    // The third-party API takes no cancellation token, so the best we can do is
+    // discard a result the user no longer wants rather than pretend to abort.
+    if (options.signal?.aborted) {
+      throw new ProviderError('cancelled', 'Generation was cancelled.', { generatorId: this.id });
+    }
+
+    if (typeof content !== 'string' || !content.trim()) {
+      throw new ProviderError(
+        'invalid_response',
+        `${found.label} extension returned an empty document.`,
+        { generatorId: this.id }
+      );
+    }
+
     return {
       content,
       format: spec.format,

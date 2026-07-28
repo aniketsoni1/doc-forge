@@ -1,9 +1,9 @@
-import { isAbsolute, resolve } from 'node:path';
+import { isAbsolute, relative, resolve } from 'node:path';
 import pc from 'picocolors';
-import { safeParseDocSpec } from '@dfg/core';
-import { resolveAndGenerate } from '@dfg/agent';
+import { DocForgeError, safeParseDocSpec } from '@dfg/core';
+import { failedAttempts, resolveAndGenerate } from '@dfg/agent';
 import { formatProvenance, summarizeResult } from '@dfg/reporting';
-import { buildCliLadder } from '../ladder';
+import { buildCliLadderFromIo } from '../ladder';
 import type { IoContext } from '../io';
 import { diffLines } from '../io';
 
@@ -27,8 +27,31 @@ function withExtension(path: string, format: string): string {
   return `${path}.${format === 'html' ? 'html' : 'md'}`;
 }
 
+/**
+ * Resolve `--output` against the working directory and report whether it escapes
+ * it. DocForge still honours an explicit path outside the cwd - the user asked
+ * for it - but says so plainly rather than writing there silently.
+ */
+export function resolveOutputPath(
+  cwd: string,
+  output: string,
+  format: string
+): { target: string; display: string; escapesCwd: boolean } {
+  const target = withExtension(isAbsolute(output) ? output : resolve(cwd, output), format);
+  const rel = relative(cwd, target);
+  const escapesCwd = rel === '' || rel.startsWith('..') || isAbsolute(rel);
+  return { target, display: escapesCwd ? target : rel, escapesCwd };
+}
+
 export async function runCreate(opts: CreateOptions, io: IoContext): Promise<number> {
-  const { generators, config } = buildCliLadder(io.env, opts.model ? { model: opts.model } : {});
+  const { generators, config, configIssues } = await buildCliLadderFromIo(
+    io,
+    opts.model ? { model: opts.model } : {}
+  );
+
+  for (const issue of configIssues) {
+    io.stderr(pc.yellow(`! ${issue}`));
+  }
 
   const parsed = safeParseDocSpec({
     prompt: opts.prompt,
@@ -48,17 +71,36 @@ export async function runCreate(opts: CreateOptions, io: IoContext): Promise<num
   }
 
   const spec = parsed.data;
-  const outcome = await resolveAndGenerate(spec, {
-    generators,
-    forceTemplate: !opts.ai,
-    allowNetwork: opts.ai
-  });
+
+  let outcome;
+  try {
+    outcome = await resolveAndGenerate(spec, {
+      generators,
+      forceTemplate: !opts.ai,
+      // `--no-ai` forces templates; otherwise network use follows aiEnabled,
+      // which a key in the environment or a config file turns on.
+      allowNetwork: opts.ai && config.aiEnabled
+    });
+  } catch (err) {
+    if (err instanceof DocForgeError && err.code === 'cancelled') {
+      io.stderr(pc.yellow('Cancelled - nothing was written.'));
+      return 130;
+    }
+    io.stderr(pc.red(err instanceof Error ? err.message : String(err)));
+    return 1;
+  }
 
   io.stderr(pc.cyan(formatProvenance(outcome.capability)));
   io.stderr(pc.dim(summarizeResult(outcome.result)));
-  if (outcome.result.meta.fellBackFrom?.length) {
-    io.stderr(pc.dim(`Fell back from: ${outcome.result.meta.fellBackFrom.join(', ')}`));
+
+  // Say *why* a generator was passed over, rather than only naming it.
+  for (const attempt of failedAttempts(outcome.attempts)) {
+    if (attempt.status === 'skipped_unavailable') continue;
+    const label = attempt.label ?? attempt.generatorId;
+    io.stderr(pc.yellow(`! ${label}: ${attempt.fallbackReason ?? attempt.status}`));
+    if (attempt.recovery) io.stderr(pc.dim(`  → ${attempt.recovery}`));
   }
+
   for (const warning of outcome.result.warnings) {
     io.stderr(pc.yellow(`! ${warning}`));
   }
@@ -70,38 +112,37 @@ export async function runCreate(opts: CreateOptions, io: IoContext): Promise<num
     return 0;
   }
 
-  const target = withExtension(
-    isAbsolute(opts.output) ? opts.output : resolve(io.cwd, opts.output),
-    spec.format
-  );
-  const rel = target.startsWith(io.cwd) ? target.slice(io.cwd.length + 1) : target;
+  const { target, display, escapesCwd } = resolveOutputPath(io.cwd, opts.output, spec.format);
+  if (escapesCwd) {
+    io.stderr(pc.yellow(`! Writing outside the working directory: ${target}`));
+  }
 
   if (await io.fileExists(target)) {
     const existing = await io.readFile(target);
     if (existing === deliverable) {
-      io.stdout(pc.dim(`No changes to ${rel}.`));
+      io.stdout(pc.dim(`No changes to ${display}.`));
       return 0;
     }
-    io.stderr(pc.bold(`\nChanges to ${rel}:`));
+    io.stderr(pc.bold(`\nChanges to ${display}:`));
     io.stderr(diffLines(existing, deliverable));
     if (!opts.force) {
       if (opts.nonInteractive || !io.interactive) {
-        io.stderr(pc.red(`Refusing to overwrite ${rel} without --force.`));
+        io.stderr(pc.red(`Refusing to overwrite ${display} without --force.`));
         return 1;
       }
-      if (!(await io.confirm(`Overwrite ${rel}?`))) {
+      if (!(await io.confirm(`Overwrite ${display}?`))) {
         io.stderr('Aborted.');
         return 1;
       }
     }
   } else if (io.interactive && !opts.nonInteractive && !opts.force) {
-    if (!(await io.confirm(`Write ${rel}?`))) {
+    if (!(await io.confirm(`Write ${display}?`))) {
       io.stderr('Aborted.');
       return 1;
     }
   }
 
   await io.writeFile(target, deliverable);
-  io.stdout(pc.green(`Wrote ${rel}`));
+  io.stdout(pc.green(`Wrote ${display}`));
   return 0;
 }

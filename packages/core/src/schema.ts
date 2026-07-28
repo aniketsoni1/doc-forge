@@ -41,7 +41,12 @@ export const docResultSchema = z.object({
   meta: z.object({
     sections: z.array(z.string()).optional(),
     tokens: z.number().nonnegative().optional(),
+    inputTokens: z.number().nonnegative().optional(),
+    outputTokens: z.number().nonnegative().optional(),
     costUsd: z.number().nonnegative().optional(),
+    exactUsage: z.boolean().optional(),
+    model: z.string().optional(),
+    durationMs: z.number().nonnegative().optional(),
     cached: z.boolean().optional(),
     repaired: z.boolean().optional(),
     fellBackFrom: z.array(z.string()).optional()

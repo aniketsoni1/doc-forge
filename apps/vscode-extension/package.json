@@ -63,6 +63,11 @@
         "command": "docforge.clearApiKey",
         "title": "DocForge: Clear API Key",
         "category": "DocForge"
+      },
+      {
+        "command": "docforge.runDiagnostics",
+        "title": "DocForge: Run Diagnostics",
+        "category": "DocForge"
       }
     ],
     "menus": {
@@ -75,6 +80,13 @@
           "command": "docforge.clearApiKey",
           "when": "isWorkspaceTrusted"
         }
+      ],
+      "editor/context": [
+        {
+          "command": "docforge.newDocument",
+          "group": "docforge@1",
+          "when": "editorLangId =~ /^(markdown|html|plaintext)$/"
+        }
       ]
     },
     "keybindings": [
@@ -84,61 +96,130 @@
         "mac": "cmd+alt+d"
       }
     ],
-    "configuration": {
-      "title": "DocForge",
-      "properties": {
-        "docforge.defaultFormat": {
-          "type": "string",
-          "enum": [
-            "md",
-            "html"
-          ],
-          "default": "md",
-          "description": "Default output format for new documents."
-        },
-        "docforge.tone": {
-          "type": "string",
-          "enum": [
-            "neutral",
-            "formal",
-            "friendly",
-            "technical",
-            "marketing"
-          ],
-          "default": "neutral",
-          "description": "Default document tone."
-        },
-        "docforge.length": {
-          "type": "string",
-          "enum": [
-            "short",
-            "medium",
-            "long"
-          ],
-          "default": "medium",
-          "description": "Default document length."
-        },
-        "docforge.enableAi": {
-          "type": "boolean",
-          "default": true,
-          "description": "Allow AI generators (VS Code LM API, compatible extensions, BYO key). When off, DocForge uses the offline template generator only."
-        },
-        "docforge.provider": {
-          "type": "string",
-          "enum": [
-            "anthropic",
-            "openai"
-          ],
-          "default": "anthropic",
-          "description": "Provider for the bring-your-own-key generator."
-        },
-        "docforge.model": {
-          "type": "string",
-          "default": "claude-3-5-sonnet-latest",
-          "description": "Model id for the bring-your-own-key generator."
+    "configuration": [
+      {
+        "title": "Generation",
+        "order": 1,
+        "properties": {
+          "docforge.defaultFormat": {
+            "type": "string",
+            "enum": [
+              "md",
+              "html"
+            ],
+            "enumDescriptions": [
+              "Markdown source (.md)",
+              "Sanitized, themed, printable HTML (.html)"
+            ],
+            "default": "md",
+            "order": 1,
+            "description": "Default output format for new documents."
+          },
+          "docforge.tone": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "formal",
+              "friendly",
+              "technical",
+              "marketing"
+            ],
+            "default": "neutral",
+            "order": 2,
+            "description": "Default document tone."
+          },
+          "docforge.length": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "long"
+            ],
+            "enumDescriptions": [
+              "One paragraph per section",
+              "Two paragraphs per section",
+              "Three paragraphs per section, plus extra sections"
+            ],
+            "default": "medium",
+            "order": 3,
+            "description": "Default document length."
+          }
+        }
+      },
+      {
+        "title": "Providers",
+        "order": 2,
+        "properties": {
+          "docforge.enableAi": {
+            "type": "boolean",
+            "default": true,
+            "order": 1,
+            "description": "Allow AI generators (VS Code LM API, compatible extensions, BYO key). When off, DocForge uses the offline template generator only. Untrusted workspaces always force templates regardless of this setting."
+          },
+          "docforge.provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai"
+            ],
+            "default": "anthropic",
+            "order": 2,
+            "description": "Provider for the bring-your-own-key generator. Set the key with the command \"DocForge: Set API Key\" - it is stored in SecretStorage, never in settings."
+          },
+          "docforge.model": {
+            "type": "string",
+            "default": "claude-3-5-sonnet-latest",
+            "order": 3,
+            "description": "Model id for the bring-your-own-key generator.",
+            "examples": [
+              "claude-3-5-sonnet-latest",
+              "claude-3-5-haiku-latest",
+              "gpt-4o-mini",
+              "gpt-4o"
+            ]
+          },
+          "docforge.requestTimeoutMs": {
+            "type": "integer",
+            "default": 60000,
+            "minimum": 1000,
+            "maximum": 600000,
+            "order": 4,
+            "description": "Abort a bring-your-own-key request after this many milliseconds."
+          }
+        }
+      },
+      {
+        "title": "Reporting",
+        "order": 3,
+        "properties": {
+          "docforge.pricing": {
+            "type": "object",
+            "default": {},
+            "order": 1,
+            "markdownDescription": "Override the built-in indicative prices used for cost estimates, keyed by model-id prefix. Costs shown by DocForge are **always estimates**, never a bill.\n\nExample:\n```json\n{ \"claude-3-5-sonnet\": { \"inputPerMTok\": 3, \"outputPerMTok\": 15 } }\n```",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "inputPerMTok",
+                "outputPerMTok"
+              ],
+              "properties": {
+                "inputPerMTok": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "USD per million input tokens."
+                },
+                "outputPerMTok": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "USD per million output tokens."
+                }
+              }
+            }
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "build": "node ./esbuild.mjs",

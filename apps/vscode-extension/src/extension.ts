@@ -1,15 +1,27 @@
 import * as vscode from 'vscode';
-import { parseDocSpec, type DocFormat, type DocSpec, type Generator } from '@dfg/core';
 import {
+  DocForgeError,
+  parseDocSpec,
+  type DocFormat,
+  type DocSpec,
+  type Generator
+} from '@dfg/core';
+import {
+  formatAttemptTrail,
   probeCapabilities,
   resolveAndGenerate,
+  type GenerationAttempt,
   type GenerationOutcome
 } from '@dfg/agent';
 import { createTemplateGenerator } from '@dfg/generator-template';
 import { ByokGenerator } from '@dfg/generator-byok';
+import { setPricingOverrides, summarizeResult, type CostModel } from '@dfg/reporting';
 import { LmApiGenerator } from './generators/lmApi';
 import { ExtensionGenerator } from './generators/extensionApi';
 import { createNonce, renderWebviewHtml } from './webview';
+import { parseInboundMessage, RequestTracker, type OutboundMessage } from './protocol';
+import { describeFailure, describeFallback, formatDiagnostics } from './errors';
+import { defaultFileName, filtersFor, languageFor } from './naming';
 
 const SECRET_KEY = 'docforge.apiKey';
 
@@ -18,19 +30,46 @@ interface FlowOptions {
   preferredId: string | undefined;
 }
 
+let output: vscode.OutputChannel | undefined;
+/** The most recent attempt trail, for `DocForge: Run Diagnostics`. */
+let lastAttempts: GenerationAttempt[] = [];
+
+function log(line: string): void {
+  output?.appendLine(`[${new Date().toISOString()}] ${line}`);
+}
+
 export function activate(context: vscode.ExtensionContext): void {
+  output = vscode.window.createOutputChannel('DocForge');
+  context.subscriptions.push(output);
+
+  applyPricingOverrides();
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('docforge.pricing')) applyPricingOverrides();
+    })
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand('docforge.newDocument', () => newDocumentFlow(context)),
     vscode.commands.registerCommand('docforge.setApiKey', () => setApiKey(context)),
     vscode.commands.registerCommand('docforge.clearApiKey', async () => {
       await context.secrets.delete(SECRET_KEY);
       void vscode.window.showInformationMessage('DocForge API key cleared.');
-    })
+    }),
+    vscode.commands.registerCommand('docforge.runDiagnostics', () => runDiagnostics(context))
   );
 }
 
 export function deactivate(): void {
-  /* no-op */
+  output = undefined;
+}
+
+/** Let users correct stale built-in pricing without waiting for a release. */
+function applyPricingOverrides(): void {
+  const configured = vscode.workspace
+    .getConfiguration('docforge')
+    .get<Record<string, CostModel>>('pricing', {});
+  setPricingOverrides(configured ?? {});
 }
 
 async function buildGenerators(context: vscode.ExtensionContext): Promise<Generator[]> {
@@ -42,7 +81,8 @@ async function buildGenerators(context: vscode.ExtensionContext): Promise<Genera
       new ByokGenerator({
         provider: config.get<'anthropic' | 'openai'>('provider', 'anthropic'),
         apiKey: key,
-        model: config.get<string>('model', 'claude-3-5-sonnet-latest')
+        model: config.get<string>('model', 'claude-3-5-sonnet-latest'),
+        timeoutMs: config.get<number>('requestTimeoutMs', 60_000)
       })
     );
   }
@@ -122,20 +162,63 @@ async function newDocumentFlow(context: vscode.ExtensionContext): Promise<void> 
   });
 }
 
+interface GenerateFlags {
+  forceTemplate: boolean;
+  preferredId: string | undefined;
+  allowNetwork: boolean;
+}
+
+/**
+ * Run a generation behind a cancellable progress notification. Failures are
+ * reported with what failed, why, and what to do next - never a bare message.
+ */
 async function generateWithProgress(
   spec: DocSpec,
   generators: Generator[],
-  options: { forceTemplate: boolean; preferredId: string | undefined; allowNetwork: boolean }
+  options: GenerateFlags
 ): Promise<GenerationOutcome | undefined> {
   try {
     return await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: 'DocForge: generating…' },
-      () => resolveAndGenerate(spec, { generators, ...options })
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'DocForge: generating…',
+        cancellable: true
+      },
+      async (_progress, token) => {
+        // Bridge the editor's cancellation token onto the AbortSignal the core
+        // pipeline understands, so Cancel actually aborts the provider request.
+        const controller = new AbortController();
+        const sub = token.onCancellationRequested(() => controller.abort());
+        try {
+          const outcome = await resolveAndGenerate(spec, {
+            generators,
+            ...options,
+            signal: controller.signal
+          });
+          lastAttempts = outcome.attempts;
+          log(`Generated with ${outcome.capability.label}`);
+          log(formatAttemptTrail(outcome.attempts));
+          return outcome;
+        } finally {
+          sub.dispose();
+        }
+      }
     );
   } catch (err) {
-    void vscode.window.showErrorMessage(
-      `DocForge failed: ${err instanceof Error ? err.message : String(err)}`
-    );
+    if (err instanceof DocForgeError && err.code === 'cancelled') {
+      log('Generation cancelled by the user.');
+      return undefined;
+    }
+    const described = describeFailure(err, lastAttempts);
+    log(`FAILED: ${described.message}`);
+    void vscode.window
+      .showErrorMessage(
+        `${described.message} ${described.recovery} ${described.dataPreserved}`,
+        'Show Logs'
+      )
+      .then((choice) => {
+        if (choice === 'Show Logs') output?.show(true);
+      });
     return undefined;
   }
 }
@@ -151,38 +234,86 @@ function showPreview(
     'docforge.preview',
     `DocForge - ${initial.document.title}`,
     vscode.ViewColumn.Beside,
-    { enableScripts: true, retainContextWhenHidden: true }
+    { enableScripts: true }
   );
 
   let current = initial;
+  const tracker = new RequestTracker();
+  let inFlight: AbortController | undefined;
+
+  const post = (message: OutboundMessage): void => {
+    void panel.webview.postMessage(message);
+  };
+
   const render = (): void => {
+    const fallbackNote = describeFallback(current.attempts);
     panel.webview.html = renderWebviewHtml({
       title: current.document.title,
       bodyHtml: current.document.preview.bodyHtml,
       provenance: current.provenance,
       format: spec.format,
       nonce: createNonce(),
-      cspSource: panel.webview.cspSource
+      cspSource: panel.webview.cspSource,
+      summary: summarizeResult(current.result),
+      ...(fallbackNote ? { fallbackNote } : {})
     });
   };
   render();
   void vscode.window.setStatusBarMessage(current.provenance, 5000);
 
+  panel.onDidDispose(() => inFlight?.abort(), undefined, context.subscriptions);
+
   panel.webview.onDidReceiveMessage(
-    async (message: { type: string }) => {
-      if (message.type === 'insert') {
-        await insertIntoEditor(current, spec.format);
-      } else if (message.type === 'save') {
-        await saveToFile(current, spec.format);
-      } else if (message.type === 'regenerate') {
-        const next = await generateWithProgress(spec, generators, {
-          forceTemplate: flow.forceTemplate,
-          preferredId: flow.preferredId,
-          allowNetwork: vscode.workspace.isTrusted
-        });
-        if (next) {
-          current = next;
-          render();
+    async (raw: unknown) => {
+      // Everything from the webview is untrusted input: validate before acting.
+      const message = parseInboundMessage(raw);
+      if (!message) {
+        log('Ignored a malformed webview message.');
+        return;
+      }
+
+      switch (message.type) {
+        case 'insert':
+          await insertIntoEditor(current, spec.format);
+          return;
+        case 'save':
+          await saveToFile(current, spec.format);
+          return;
+        case 'copy':
+          await vscode.env.clipboard.writeText(current.document.deliverable);
+          void vscode.window.setStatusBarMessage('DocForge: copied to clipboard', 3000);
+          return;
+        case 'cancel':
+          inFlight?.abort();
+          post({ type: 'state', busy: false });
+          return;
+        case 'regenerate': {
+          const requestId = tracker.next();
+          inFlight?.abort();
+          const controller = new AbortController();
+          inFlight = controller;
+          post({ type: 'state', busy: true });
+
+          const next = await generateWithProgress(spec, generators, {
+            forceTemplate: flow.forceTemplate,
+            preferredId: flow.preferredId,
+            allowNetwork: vscode.workspace.isTrusted
+          });
+
+          // A newer regenerate superseded this one: drop the stale result rather
+          // than letting it overwrite fresher output.
+          if (!tracker.isCurrent(requestId)) {
+            log(`Discarded stale generation #${requestId}.`);
+            return;
+          }
+          inFlight = undefined;
+          if (next) {
+            current = next;
+            render();
+          } else {
+            post({ type: 'state', busy: false });
+          }
+          return;
         }
       }
     },
@@ -200,23 +331,86 @@ async function insertIntoEditor(outcome: GenerationOutcome, format: DocFormat): 
   }
   const doc = await vscode.workspace.openTextDocument({
     content: deliverable,
-    language: format === 'html' ? 'html' : 'markdown'
+    language: languageFor(format)
   });
   await vscode.window.showTextDocument(doc);
 }
 
 async function saveToFile(outcome: GenerationOutcome, format: DocFormat): Promise<void> {
-  const ext = format === 'html' ? 'html' : 'md';
   const folder = vscode.workspace.workspaceFolders?.[0]?.uri;
-  const defaultName = `${outcome.document.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'document'}.${ext}`;
-  const defaultUri = folder ? vscode.Uri.joinPath(folder, defaultName) : undefined;
+  const name = defaultFileName(outcome.document.title, format);
+  const defaultUri = folder ? vscode.Uri.joinPath(folder, name) : undefined;
   const target = await vscode.window.showSaveDialog({
     ...(defaultUri ? { defaultUri } : {}),
-    filters: format === 'html' ? { HTML: ['html'] } : { Markdown: ['md'] }
+    filters: filtersFor(format)
   });
   if (!target) return;
+
+  // The save dialog already confirms an overwrite, but when the file exists and
+  // differs, a diff is far more useful than a yes/no prompt.
+  const existing = await readIfExists(target);
+  if (existing !== undefined && existing !== outcome.document.deliverable) {
+    const choice = await vscode.window.showWarningMessage(
+      `${target.fsPath} already exists and differs from the generated document.`,
+      { modal: true },
+      'Show Diff',
+      'Overwrite'
+    );
+    if (choice === 'Show Diff') {
+      await showDiff(target, outcome.document.deliverable, format);
+      return;
+    }
+    if (choice !== 'Overwrite') return;
+  }
+
   await vscode.workspace.fs.writeFile(target, Buffer.from(outcome.document.deliverable, 'utf8'));
   void vscode.window.showInformationMessage(`DocForge saved ${target.fsPath}`);
+}
+
+async function readIfExists(uri: vscode.Uri): Promise<string | undefined> {
+  try {
+    return Buffer.from(await vscode.workspace.fs.readFile(uri)).toString('utf8');
+  } catch {
+    return undefined;
+  }
+}
+
+/** Open a side-by-side diff of the existing file against the generated document. */
+async function showDiff(target: vscode.Uri, deliverable: string, format: DocFormat): Promise<void> {
+  const generated = await vscode.workspace.openTextDocument({
+    content: deliverable,
+    language: languageFor(format)
+  });
+  await vscode.commands.executeCommand(
+    'vscode.diff',
+    target,
+    generated.uri,
+    'Existing ↔ DocForge output'
+  );
+}
+
+async function runDiagnostics(context: vscode.ExtensionContext): Promise<void> {
+  const generators = await buildGenerators(context);
+  const caps = await probeCapabilities(generators);
+  const config = vscode.workspace.getConfiguration('docforge');
+
+  output?.clear();
+  output?.appendLine('DocForge diagnostics');
+  output?.appendLine(`Workspace trusted: ${vscode.workspace.isTrusted}`);
+  output?.appendLine(`AI enabled: ${config.get('enableAi', true)}`);
+  output?.appendLine(`Provider: ${config.get('provider', 'anthropic')}`);
+  output?.appendLine(`Model: ${config.get('model', '')}`);
+  output?.appendLine('');
+  output?.appendLine('Generators:');
+  for (const cap of caps) {
+    output?.appendLine(
+      `  ${cap.available ? '✓' : '·'} ${cap.label}${cap.detail ? ` - ${cap.detail}` : ''}`
+    );
+  }
+  output?.appendLine('');
+  output?.appendLine('Last generation:');
+  output?.appendLine(formatDiagnostics(lastAttempts));
+  output?.show(true);
 }
 
 async function setApiKey(context: vscode.ExtensionContext): Promise<void> {

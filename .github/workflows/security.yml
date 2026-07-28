@@ -22,7 +22,17 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Audit (high severity)
+
+      # Runtime dependencies are the ones that ship inside the VSIX, so an
+      # advisory there is a real user-facing risk: fail the build.
+      - name: Audit runtime dependencies (blocking)
+        run: npm audit --omit=dev --audit-level=high
+
+      # Dev-tool advisories matter, but a new one landing upstream should not
+      # block an unrelated PR. Reported, not enforced - and Dependabot is no
+      # longer told to ignore tooling majors, so these get fixed rather than
+      # accumulating silently.
+      - name: Audit all dependencies (report only)
         run: npm audit --audit-level=high || true
 
   dependency-review:
@@ -31,6 +41,20 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
+
+      # Requires the repository's Dependency graph feature:
+      #   Settings -> Advanced Security -> Dependency graph
+      #
+      # It is off for this repository today, and the action responds by failing
+      # the job outright ("Dependency review is not supported on this
+      # repository"), which blocks every pull request for a reason no
+      # contributor can fix from the code.
+      #
+      # So this step is advisory until the feature is switched on. That is not a
+      # coverage gap: the audit job above blocks on runtime advisories, which is
+      # the class that actually ships inside the VSIX. Once Dependency graph is
+      # enabled, delete `continue-on-error` to make this blocking too.
       - uses: actions/dependency-review-action@v4
+        continue-on-error: true
         with:
           fail-on-severity: high

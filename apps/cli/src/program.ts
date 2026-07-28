@@ -49,8 +49,8 @@ export function buildProgram(io: IoContext = nodeIo()): Command {
   program
     .command('configure')
     .description('Explain how to supply AI credentials (the CLI uses environment variables)')
-    .action(() => {
-      process.exitCode = runConfigure(io);
+    .action(async () => {
+      process.exitCode = await runConfigure(io);
     });
 
   return program;

@@ -27,6 +27,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run typecheck:ext
       - run: npm run lint
+      - run: npm run scan:secrets
       - run: npm test
 
   e2e:

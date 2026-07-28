@@ -23,7 +23,11 @@ If no AI is available (or the workspace is untrusted, or you're offline), DocFor
 - Live preview webview with a strict Content-Security-Policy
 - Generator picker (Auto / a specific model / Built-in templates)
 - Provenance line - never wonder which generator produced the output
-- Insert-into-editor and Save-as actions
+- Insert-into-editor, Copy, and Save-as actions
+- **Cancellable** generation; cancelling aborts the provider request
+- **Diff before overwrite** when saving over an existing file
+- Actionable errors: which provider failed, why, and what to do next
+- Token, cost, and duration reporting, always labelled when estimated
 - Respects Workspace Trust: untrusted workspaces use the offline generator only
 - No telemetry; AI/network calls are opt-in and disclosed
 
@@ -34,13 +38,26 @@ If no AI is available (or the workspace is untrusted, or you're offline), DocFor
 | `DocForge: New Document from Prompt` | The main flow (default keybinding `Ctrl/Cmd+Alt+D`) |
 | `DocForge: Set API Key` | Store a BYO key in SecretStorage |
 | `DocForge: Clear API Key` | Remove the stored key |
+| `DocForge: Run Diagnostics` | Show generator availability and the last generation's attempt trail |
 
 ## Settings
 
+**Generation**
+
 - `docforge.defaultFormat` - `md` or `html`
 - `docforge.tone`, `docforge.length`
+
+**Providers**
+
 - `docforge.enableAi` - turn off to force the offline template generator
 - `docforge.provider`, `docforge.model` - for the BYO-key generator
+- `docforge.requestTimeoutMs` - abort a BYO-key request after this long
+
+**Reporting**
+
+- `docforge.pricing` - override the indicative price table used for cost estimates
+
+Cost figures are always **estimates**, never a bill.
 
 ## Privacy & security
 

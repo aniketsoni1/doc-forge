@@ -6,6 +6,8 @@ export type {
   DocMeta,
   DocResult,
   Capability,
+  GeneratorFeatures,
+  GenerateOptions,
   Generator
 } from './types';
 
@@ -17,7 +19,18 @@ export {
   BUILTIN_TOOLS
 } from './permissions';
 
-export { DocForgeError, GeneratorUnavailableError, DocValidationError } from './errors';
+export {
+  DocForgeError,
+  GeneratorUnavailableError,
+  DocValidationError,
+  ProviderError,
+  providerCodeFromStatus,
+  isAbortError,
+  toProviderError
+} from './errors';
+export type { ProviderErrorCode, ProviderErrorOptions } from './errors';
+
+export { redactSecrets, redactKnownSecret, containsSecret } from './redact';
 
 export {
   docFormatSchema,

@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/node-%3E%3D20-3c873a.svg" alt="Node >= 20" />
-  <img src="https://img.shields.io/badge/tests-70%20passing-brightgreen.svg" alt="70 tests passing" />
+  <img src="https://img.shields.io/badge/tests-passing-brightgreen.svg" alt="Tests passing" />
 </p>
 
 # DocForge
@@ -36,8 +36,11 @@ extension**.
 - Six deterministic presets: `readme`, `blog`, `report`, `landing`, `changelog`, `letter`
 - Prompt heuristics (title, sections, feature lists) drive the template path
 - A single `Generator` seam with a transparent **priority ladder**
-- Live preview, generator picker, Insert / Save, and diff + approval before overwrite
+- Live preview, generator picker, Insert / Save / Copy, and **cancellable** generation
+- Diff + approval before any overwrite, in both the CLI and the extension
+- Typed provider errors: every fallback reports *what* failed and *what to do next*
 - Bring-your-own-key (Anthropic / OpenAI) in both the CLI and the extension
+- Token, cost, and duration reporting - always labelled as estimates when estimated
 
 ## The generator ladder
 
@@ -88,14 +91,38 @@ an existing file shows a diff and asks for confirmation.
 
 Other commands: `docforge init` (write `docforge.config.json`), `docforge doctor`, `docforge configure`.
 
+### Project configuration
+
+`docforge init` writes a `docforge.config.json` that DocForge reads from the working directory on
+every run:
+
+```json
+{
+  "defaultFormat": "md",
+  "defaultTone": "neutral",
+  "defaultLength": "medium",
+  "aiEnabled": false,
+  "provider": "anthropic",
+  "model": "claude-3-5-sonnet-latest",
+  "requestTimeoutMs": 60000
+}
+```
+
+Precedence is **defaults → config file → environment → command-line flags**, so the environment
+always beats a checked-in project file. Unknown keys are reported rather than ignored, and a
+malformed file degrades to the defaults with a warning instead of failing the run.
+
 ## VS Code extension
 
 Install the VSIX (see below), then run **DocForge: New Document from Prompt** (`Ctrl/Cmd+Alt+D`):
 
 1. Describe the document.
 2. Pick a format and a generator (Auto / a specific model / Built-in templates).
-3. Review the live, themed, sanitized preview.
-4. **Insert** into the editor or **Save** to disk. **Regenerate** to try again.
+3. Review the live, themed, sanitized preview. Generation is cancellable throughout.
+4. **Insert** into the editor, **Copy**, or **Save** to disk. **Regenerate** to try again.
+
+Saving over an existing file offers a side-by-side **diff** before overwriting. If a generator fails,
+the preview reports which one and why, and **DocForge: Run Diagnostics** shows the full attempt trail.
 
 Untrusted workspaces use the offline template generator only. Set a BYO key with **DocForge: Set API
 Key** (stored in SecretStorage, never in settings).
@@ -111,8 +138,12 @@ CLI (environment variables, local-only):
 | `DOCFORGE_MODEL` | Model id |
 | `DOCFORGE_FORMAT` | Default `md` or `html` |
 
-Extension settings: `docforge.defaultFormat`, `docforge.tone`, `docforge.length`, `docforge.enableAi`,
-`docforge.provider`, `docforge.model`.
+Extension settings, grouped under **Generation**, **Providers**, and **Reporting**:
+`docforge.defaultFormat`, `docforge.tone`, `docforge.length`, `docforge.enableAi`,
+`docforge.provider`, `docforge.model`, `docforge.requestTimeoutMs`, `docforge.pricing`.
+
+Cost figures are **always estimates** derived from an indicative price table; override it with
+`docforge.pricing` (extension) or the `pricing` key in `docforge.config.json` (CLI).
 
 ## Privacy & security
 
@@ -193,14 +224,27 @@ code --install-extension artifacts/docforge-0.1.1.vsix
 - VS Code UI screenshots and the demo GIF are produced manually (see `docs/CAPTURE.md`); they are not
   auto-captured in this environment.
 - PDF/DOCX export and streaming preview are on the roadmap, not yet implemented.
+- Token and cost figures are **estimates**. They come from a built-in indicative price table that can
+  go stale; override it rather than treating the number as a bill. Counts are marked `~` when
+  DocForge estimated them because the provider omitted usage.
+- Cancellation is honoured by the BYO-key and VS Code LM API generators. The compatible-extension
+  path exposes no cancellation token, so a cancel there discards the result rather than aborting the
+  underlying request.
+- The extension's `vscode`-importing modules are not unit-tested; its pure modules are. There is no
+  end-to-end editor test harness yet.
 
 ## Roadmap
 
-- Section-level regeneration ("improve this section", "make it shorter")
+A full audit and phased plan live in [`docs/AUDIT.md`](docs/AUDIT.md) and
+[`docs/PLAN.md`](docs/PLAN.md). Next up:
+
+- Selection-based AI editing and section-level regeneration with diff review
+- A central Document Studio panel
+- Workspace-aware generation with explicit, previewed, redacted context
 - Preset & prompt library shareable across a team
 - Export beyond md/html (PDF / DOCX)
-- Streaming preview and a token/cost display for AI generations
-- Prompt caching for instant, offline re-open
+- Streaming preview
+- Prompt caching and local generation history
 
 ## Contributing
 
