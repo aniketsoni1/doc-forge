@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IoContext } from './io';
 import { runCreate, resolveOutputPath } from './commands/create';
 import { runConfigure, runDoctor, runInit } from './commands/misc';
+import { runOutline, runRewrite, runTransforms } from './commands/rewrite';
 import { buildProgram } from './program';
 
 interface MemoryIo extends IoContext {
@@ -190,6 +191,157 @@ describe('resolveOutputPath', () => {
 
   it('treats an absolute path outside the cwd as escaping', () => {
     expect(resolveOutputPath('/work', '/tmp/out', 'md').escapesCwd).toBe(true);
+  });
+});
+
+describe('docforge transforms', () => {
+  it('lists transforms and marks which run offline', () => {
+    const io = memoryIo();
+    expect(runTransforms(io)).toBe(0);
+    const text = io.out.join('\n');
+    expect(text).toContain('to-bullets');
+    expect(text).toContain('offline');
+    expect(text).toContain('improve-clarity');
+    expect(text).toContain('needs AI');
+  });
+});
+
+describe('docforge outline', () => {
+  it('prints the heading structure with slugs', async () => {
+    const io = memoryIo();
+    io.files.set('/work/doc.md', '# Title\n\n## Alpha\n\nbody\n\n## Beta\n\nbody\n');
+    expect(await runOutline('doc.md', io)).toBe(0);
+    const text = io.out.join('\n');
+    expect(text).toContain('Title');
+    expect(text).toContain('Alpha');
+    expect(text).toContain('beta');
+  });
+
+  it('says so when there are no headings', async () => {
+    const io = memoryIo();
+    io.files.set('/work/plain.md', 'just prose\n');
+    await runOutline('plain.md', io);
+    expect(io.out.join('\n')).toContain('No headings');
+  });
+
+  it('reports a missing file', async () => {
+    const io = memoryIo();
+    expect(await runOutline('nope.md', io)).toBe(1);
+    expect(io.err.join('\n')).toContain('No such file');
+  });
+});
+
+describe('docforge rewrite', () => {
+  const doc = 'First point. Second point.\n';
+
+  it('applies an offline transform and prints the result', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    const code = await runRewrite(
+      { file: 'notes.md', transform: 'to-bullets', ai: false },
+      io
+    );
+    expect(code).toBe(0);
+    expect(io.out.join('\n')).toContain('- First point.');
+    // Without --write the file is untouched.
+    expect(io.files.get('/work/notes.md')).toBe(doc);
+  });
+
+  it('shows a diff before proposing any change', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    await runRewrite({ file: 'notes.md', transform: 'to-bullets', ai: false }, io);
+    const err = io.err.join('\n');
+    expect(err).toContain('Proposed changes');
+    expect(err).toContain('+ - First point.');
+  });
+
+  it('writes the file with --write --force', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    const code = await runRewrite(
+      { file: 'notes.md', transform: 'to-bullets', ai: false, write: true, force: true },
+      io
+    );
+    expect(code).toBe(0);
+    expect(io.files.get('/work/notes.md')).toContain('- First point.');
+  });
+
+  it('refuses to write non-interactively without --force', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    const code = await runRewrite(
+      {
+        file: 'notes.md',
+        transform: 'to-bullets',
+        ai: false,
+        write: true,
+        nonInteractive: true
+      },
+      io
+    );
+    expect(code).toBe(1);
+    expect(io.files.get('/work/notes.md')).toBe(doc);
+    expect(io.err.join('\n')).toContain('--force');
+  });
+
+  it('reports an unknown transform with a pointer to the list', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    const code = await runRewrite({ file: 'notes.md', transform: 'nonsense', ai: false }, io);
+    expect(code).toBe(1);
+    expect(io.err.join('\n')).toContain('docforge transforms');
+  });
+
+  it('reports a missing file', async () => {
+    const io = memoryIo();
+    expect(await runRewrite({ file: 'nope.md', ai: false }, io)).toBe(1);
+    expect(io.err.join('\n')).toContain('No such file');
+  });
+
+  it('explains that an AI transform cannot run with --no-ai', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    const code = await runRewrite(
+      { file: 'notes.md', transform: 'improve-clarity', ai: false },
+      io
+    );
+    expect(code).toBe(1);
+    expect(io.err.join('\n')).toMatch(/needs an AI provider/i);
+  });
+
+  it('rejects an unknown section by name and lists the real ones', async () => {
+    const io = memoryIo();
+    io.files.set('/work/doc.md', '# T\n\n## Alpha\n\nbody\n');
+    const code = await runRewrite(
+      { file: 'doc.md', section: 'missing', ai: false },
+      io
+    );
+    expect(code).toBe(1);
+    expect(io.err.join('\n')).toContain('alpha');
+  });
+
+  it('reports no changes when a transform is a no-op', async () => {
+    const io = memoryIo();
+    io.files.set('/work/list.md', '- already a bullet\n');
+    const code = await runRewrite(
+      { file: 'list.md', transform: 'to-bullets', ai: false },
+      io
+    );
+    expect(code).toBe(0);
+    expect(io.out.join('\n')).toContain('No changes');
+  });
+
+  it('is wired into the commander program', async () => {
+    const io = memoryIo();
+    io.files.set('/work/notes.md', doc);
+    process.exitCode = 0;
+    await buildProgram(io).parseAsync(
+      argv('rewrite', 'notes.md', '--transform', 'to-bullets', '--no-ai')
+    );
+    expect(io.out.join('\n')).toContain('- First point.');
+    expect(process.exitCode).toBe(0);
+    process.exitCode = 0;
   });
 });
 
