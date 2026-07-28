@@ -6,3 +6,10 @@ export {
   probeCapabilities
 } from './ladder';
 export type { LadderOptions, GenerationOutcome } from './ladder';
+export {
+  isSuccess,
+  failedAttempts,
+  explainFallback,
+  formatAttemptTrail
+} from './attempts';
+export type { GenerationAttempt, AttemptStatus } from './attempts';
