@@ -5,7 +5,15 @@ All notable changes to DocForge are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-28
+
+Phases 1 and 2 of the plan in [`docs/PLAN.md`](docs/PLAN.md): stabilisation, then
+editing workflows.
+
+**This is not the v2 release.** Phases 3-6 - Document Studio, workspace-aware
+generation, the prompt and template library, PDF/DOCX export, validation and
+generation history - are not implemented. The version stays in the 0.x line
+rather than claiming a completeness the code does not have.
 
 ### Phase 2 - Editing workflows
 

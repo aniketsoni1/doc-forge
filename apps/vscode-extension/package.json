@@ -2,7 +2,7 @@
   "name": "docforge-vscode",
   "displayName": "DocForge - Document Generator",
   "description": "Generate polished Markdown or HTML documents from a prompt - using your available AI, with an always-on offline fallback.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "commonjs",
   "publisher": "AniketSoni",

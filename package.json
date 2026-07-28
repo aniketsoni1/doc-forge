@@ -1,6 +1,6 @@
 {
   "name": "docforge",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "Deterministic-first document generator: a prompt in, a polished Markdown or HTML file out. One TypeScript core, a CLI, and a VS Code extension.",
   "type": "module",

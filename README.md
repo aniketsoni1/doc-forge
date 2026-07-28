@@ -248,7 +248,7 @@ Open these in a browser to see the real rendered output:
 npm run build:ext
 npm run package:vsix       # -> artifacts/docforge-<version>.vsix (+ .sha256)
 npm run verify:vsix        # audits the packaged contents
-code --install-extension artifacts/docforge-0.1.1.vsix
+code --install-extension artifacts/docforge-0.2.0.vsix
 ```
 
 ## Limitations
