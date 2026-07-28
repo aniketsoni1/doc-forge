@@ -13,3 +13,7 @@ export {
   formatAttemptTrail
 } from './attempts';
 export type { GenerationAttempt, AttemptStatus } from './attempts';
+export { runTransform } from './edit';
+export type { EditRequest, EditResult } from './edit';
+export { regenerateSection } from './section';
+export type { SectionRequest, SectionResult } from './section';

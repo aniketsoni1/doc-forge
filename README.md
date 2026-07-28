@@ -36,8 +36,10 @@ extension**.
 - Six deterministic presets: `readme`, `blog`, `report`, `landing`, `changelog`, `letter`
 - Prompt heuristics (title, sections, feature lists) drive the template path
 - A single `Generator` seam with a transparent **priority ladder**
-- Live preview, generator picker, Insert / Save / Copy, and **cancellable** generation
-- Diff + approval before any overwrite, in both the CLI and the extension
+- Live preview with **streaming drafts**, Insert / Save / Copy, and **cancellable** generation
+- **Selection-based editing**: 15 transforms, four of which run fully offline
+- **Section-level regeneration** driven by a real Markdown/HTML parser, not string replacement
+- Diff + approval before any overwrite, rewrite, or regeneration
 - Typed provider errors: every fallback reports *what* failed and *what to do next*
 - Bring-your-own-key (Anthropic / OpenAI) in both the CLI and the extension
 - Token, cost, and duration reporting - always labelled as estimates when estimated
@@ -91,6 +93,26 @@ an existing file shows a diff and asks for confirmation.
 
 Other commands: `docforge init` (write `docforge.config.json`), `docforge doctor`, `docforge configure`.
 
+### Rewriting existing documents
+
+```bash
+# What can it do? Offline transforms are marked.
+docforge transforms
+
+# See a document's structure
+docforge outline README.md
+
+# Apply an offline transform - no key, no network, shows a diff first
+docforge rewrite notes.md --transform to-bullets --no-ai
+
+# Rewrite one section only, leaving the rest byte-identical
+docforge rewrite README.md --section installation --instruction "add a Windows example" --write
+```
+
+`rewrite` prints a diff and, without `--write`, only shows the result. With `--write` it asks for
+confirmation, and in a non-interactive context it refuses unless given `--force`, so automation
+cannot quietly rewrite files.
+
 ### Project configuration
 
 `docforge init` writes a `docforge.config.json` that DocForge reads from the working directory on
@@ -123,6 +145,19 @@ Install the VSIX (see below), then run **DocForge: New Document from Prompt** (`
 
 Saving over an existing file offers a side-by-side **diff** before overwriting. If a generator fails,
 the preview reports which one and why, and **DocForge: Run Diagnostics** shows the full attempt trail.
+
+Two editing commands work on documents you already have:
+
+- **DocForge: Improve Selected Text** (`Ctrl/Cmd+Alt+I`) - select text, pick a transform, review the
+  diff, then accept, reject, or regenerate. Four transforms (bullets ↔ prose, add headings,
+  executive summary) are deterministic and need no provider at all; the picker says which.
+- **DocForge: Regenerate Section** - pick a heading from the outline (the one under your cursor is
+  offered first), optionally add an instruction, and rewrite just that section. Neighbouring
+  sections are preserved exactly, because the replacement is spliced at parsed character offsets
+  rather than matched by string.
+
+Both preserve the original until you accept, and both abandon the edit if the document changed while
+the preview was open.
 
 Untrusted workspaces use the offline template generator only. Set a BYO key with **DocForge: Set API
 Key** (stored in SecretStorage, never in settings).
@@ -169,7 +204,8 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 ```
 apps/       cli/  vscode-extension/
 packages/   core  render  templates  sanitize  configuration
-            reporting  agent  testing
+            reporting  agent  testing  diff
+            document-model  transforms
             generator-template  generator-byok
 samples/  docs/  assets/  scripts/  .github/
 ```
@@ -223,7 +259,15 @@ code --install-extension artifacts/docforge-0.1.1.vsix
   `generateDocument` API.
 - VS Code UI screenshots and the demo GIF are produced manually (see `docs/CAPTURE.md`); they are not
   auto-captured in this environment.
-- PDF/DOCX export and streaming preview are on the roadmap, not yet implemented.
+- PDF/DOCX export is on the roadmap, not yet implemented.
+- Streaming shows a live draft in the preview. Whether output actually arrives incrementally depends
+  on the provider: the VS Code LM API streams, and the BYO-key path currently returns in one piece,
+  so its draft appears all at once.
+- Eleven of the fifteen selection transforms need an AI provider. The four deterministic ones are
+  structural rather than semantic - `bullets-to-prose` rearranges punctuation, it does not rewrite
+  meaning - and the picker labels which is which rather than silently producing a worse result.
+- The executive-summary transform is *extractive*: it selects existing sentences rather than
+  synthesising new ones, so nothing it emits is text the author did not write.
 - Token and cost figures are **estimates**. They come from a built-in indicative price table that can
   go stale; override it rather than treating the number as a bill. Counts are marked `~` when
   DocForge estimated them because the provider omitted usage.
@@ -236,15 +280,14 @@ code --install-extension artifacts/docforge-0.1.1.vsix
 ## Roadmap
 
 A full audit and phased plan live in [`docs/AUDIT.md`](docs/AUDIT.md) and
-[`docs/PLAN.md`](docs/PLAN.md). Next up:
+[`docs/PLAN.md`](docs/PLAN.md). Phases 1 and 2 are done. Next up:
 
-- Selection-based AI editing and section-level regeneration with diff review
 - A central Document Studio panel
 - Workspace-aware generation with explicit, previewed, redacted context
 - Preset & prompt library shareable across a team
 - Export beyond md/html (PDF / DOCX)
-- Streaming preview
 - Prompt caching and local generation history
+- Validation and accessibility checks in the Problems panel
 
 ## Contributing
 

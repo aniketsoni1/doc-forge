@@ -1,6 +1,7 @@
 import { readFile, writeFile, access, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import pc from 'picocolors';
+import { formatTextDiff } from '@dfg/diff';
 
 /** Injectable I/O boundary so command logic is unit-testable without real fs/tty. */
 export interface IoContext {
@@ -55,35 +56,19 @@ export function nodeIo(overrides: Partial<IoContext> = {}): IoContext {
   };
 }
 
-/** Longest-common-subsequence line diff, rendered as a compact colored unified diff. */
+/**
+ * Colourise the shared line differ for a terminal.
+ *
+ * The diff algorithm itself lives in `@dfg/diff` so the extension can render the
+ * same comparison in a webview; only the ANSI decoration belongs here.
+ */
 export function diffLines(oldText: string, newText: string): string {
-  const a = oldText.split('\n');
-  const b = newText.split('\n');
-  const n = a.length;
-  const m = b.length;
-  const lcs: number[][] = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
-  for (let i = n - 1; i >= 0; i--) {
-    for (let j = m - 1; j >= 0; j--) {
-      lcs[i]![j] = a[i] === b[j] ? lcs[i + 1]![j + 1]! + 1 : Math.max(lcs[i + 1]![j]!, lcs[i]![j + 1]!);
+  return formatTextDiff(oldText, newText, {
+    full: true,
+    decorate: (line, rendered) => {
+      if (line.op === 'add') return pc.green(rendered);
+      if (line.op === 'remove') return pc.red(rendered);
+      return rendered;
     }
-  }
-  const out: string[] = [];
-  let i = 0;
-  let j = 0;
-  while (i < n && j < m) {
-    if (a[i] === b[j]) {
-      out.push(`  ${a[i]}`);
-      i++;
-      j++;
-    } else if (lcs[i + 1]![j]! >= lcs[i]![j + 1]!) {
-      out.push(pc.red(`- ${a[i]}`));
-      i++;
-    } else {
-      out.push(pc.green(`+ ${b[j]}`));
-      j++;
-    }
-  }
-  while (i < n) out.push(pc.red(`- ${a[i++]}`));
-  while (j < m) out.push(pc.green(`+ ${b[j++]}`));
-  return out.join('\n');
+  });
 }

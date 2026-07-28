@@ -22,6 +22,7 @@ import { createNonce, renderWebviewHtml } from './webview';
 import { parseInboundMessage, RequestTracker, type OutboundMessage } from './protocol';
 import { describeFailure, describeFallback, formatDiagnostics } from './errors';
 import { defaultFileName, filtersFor, languageFor } from './naming';
+import { editSelectionFlow, regenerateSectionFlow, type EditingDeps } from './editing';
 
 const SECRET_KEY = 'docforge.apiKey';
 
@@ -56,8 +57,23 @@ export function activate(context: vscode.ExtensionContext): void {
       await context.secrets.delete(SECRET_KEY);
       void vscode.window.showInformationMessage('DocForge API key cleared.');
     }),
-    vscode.commands.registerCommand('docforge.runDiagnostics', () => runDiagnostics(context))
+    vscode.commands.registerCommand('docforge.runDiagnostics', () => runDiagnostics(context)),
+    vscode.commands.registerCommand('docforge.improveSelection', () =>
+      editSelectionFlow(editingDeps(context))
+    ),
+    vscode.commands.registerCommand('docforge.regenerateSection', () =>
+      regenerateSectionFlow(editingDeps(context))
+    )
   );
+}
+
+/** The narrow surface the editing flows need from the extension host. */
+function editingDeps(context: vscode.ExtensionContext): EditingDeps {
+  return {
+    buildGenerators: () => buildGenerators(context),
+    log,
+    showLogs: () => output?.show(true)
+  };
 }
 
 export function deactivate(): void {
@@ -166,6 +182,8 @@ interface GenerateFlags {
   forceTemplate: boolean;
   preferredId: string | undefined;
   allowNetwork: boolean;
+  /** Receives incremental text from streaming-capable generators. */
+  onChunk?: (chunk: string) => void;
 }
 
 /**
@@ -190,9 +208,11 @@ async function generateWithProgress(
         const controller = new AbortController();
         const sub = token.onCancellationRequested(() => controller.abort());
         try {
+          const { onChunk, ...flags } = options;
           const outcome = await resolveAndGenerate(spec, {
             generators,
-            ...options,
+            ...flags,
+            ...(onChunk ? { onChunk } : {}),
             signal: controller.signal
           });
           lastAttempts = outcome.attempts;
@@ -294,10 +314,19 @@ function showPreview(
           inFlight = controller;
           post({ type: 'state', busy: true });
 
+          // Stream into the preview as a draft. Nothing streamed is ever
+          // written to disk or rendered as HTML - it is unsanitized until the
+          // generation finishes and the pipeline finalizes it.
+          let draft = '';
           const next = await generateWithProgress(spec, generators, {
             forceTemplate: flow.forceTemplate,
             preferredId: flow.preferredId,
-            allowNetwork: vscode.workspace.isTrusted
+            allowNetwork: vscode.workspace.isTrusted,
+            onChunk: (chunk) => {
+              if (!tracker.isCurrent(requestId)) return;
+              draft += chunk;
+              post({ type: 'draft', text: draft });
+            }
           });
 
           // A newer regenerate superseded this one: drop the stale result rather

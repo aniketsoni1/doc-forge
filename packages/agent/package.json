@@ -4,5 +4,15 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "exports": { ".": "./src/index.ts" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@dfg/core": "*",
+    "@dfg/sanitize": "*",
+    "@dfg/render": "*",
+    "@dfg/reporting": "*",
+    "@dfg/document-model": "*",
+    "@dfg/transforms": "*"
+  }
 }

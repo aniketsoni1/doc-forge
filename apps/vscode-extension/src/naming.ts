@@ -31,3 +31,23 @@ export function languageFor(format: DocFormat): string {
 export function filtersFor(format: DocFormat): Record<string, string[]> {
   return format === 'html' ? { HTML: ['html'] } : { Markdown: ['md'] };
 }
+
+/**
+ * Map a VS Code language id onto a DocForge format.
+ *
+ * Anything that is not HTML is treated as Markdown: plain text and MDX are
+ * close enough that Markdown-aware handling helps rather than harms, and it
+ * keeps the fallback predictable.
+ */
+export function formatForLanguage(languageId: string): DocFormat {
+  return languageId === 'html' ? 'html' : 'md';
+}
+
+/** Languages where selection editing and section regeneration are offered. */
+export const EDITABLE_LANGUAGES: readonly string[] = [
+  'markdown',
+  'html',
+  'plaintext',
+  'quarto',
+  'mdx'
+];

@@ -38,6 +38,8 @@ If no AI is available (or the workspace is untrusted, or you're offline), DocFor
 | `DocForge: New Document from Prompt` | The main flow (default keybinding `Ctrl/Cmd+Alt+D`) |
 | `DocForge: Set API Key` | Store a BYO key in SecretStorage |
 | `DocForge: Clear API Key` | Remove the stored key |
+| `DocForge: Improve Selected Text` | Transform a selection, with diff review (`Ctrl/Cmd+Alt+I`) |
+| `DocForge: Regenerate Section` | Rewrite one section, preserving its neighbours exactly |
 | `DocForge: Run Diagnostics` | Show generator availability and the last generation's attempt trail |
 
 ## Settings

@@ -68,6 +68,16 @@
         "command": "docforge.runDiagnostics",
         "title": "DocForge: Run Diagnostics",
         "category": "DocForge"
+      },
+      {
+        "command": "docforge.improveSelection",
+        "title": "DocForge: Improve Selected Text",
+        "category": "DocForge"
+      },
+      {
+        "command": "docforge.regenerateSection",
+        "title": "DocForge: Regenerate Section",
+        "category": "DocForge"
       }
     ],
     "menus": {
@@ -79,12 +89,26 @@
         {
           "command": "docforge.clearApiKey",
           "when": "isWorkspaceTrusted"
+        },
+        {
+          "command": "docforge.improveSelection",
+          "when": "editorHasSelection"
         }
       ],
       "editor/context": [
         {
-          "command": "docforge.newDocument",
+          "command": "docforge.improveSelection",
           "group": "docforge@1",
+          "when": "editorHasSelection && editorLangId =~ /^(markdown|html|plaintext|mdx|quarto)$/"
+        },
+        {
+          "command": "docforge.regenerateSection",
+          "group": "docforge@2",
+          "when": "editorLangId =~ /^(markdown|html|mdx|quarto)$/"
+        },
+        {
+          "command": "docforge.newDocument",
+          "group": "docforge@3",
           "when": "editorLangId =~ /^(markdown|html|plaintext)$/"
         }
       ]
@@ -94,6 +118,12 @@
         "command": "docforge.newDocument",
         "key": "ctrl+alt+d",
         "mac": "cmd+alt+d"
+      },
+      {
+        "command": "docforge.improveSelection",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
+        "when": "editorHasSelection"
       }
     ],
     "configuration": [
