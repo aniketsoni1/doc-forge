@@ -1,8 +1,27 @@
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
+
+/**
+ * Map `@dfg/<pkg>` to `packages/<pkg>/src`, mirroring the `paths` entry in
+ * tsconfig.base.json.
+ *
+ * This was previously done by vite-tsconfig-paths. That plugin declares `vite`
+ * as a `*` peer, which pinned an old, separately-vulnerable Vite alongside the
+ * one Vitest already ships. Since every import is a bare `@dfg/<pkg>` specifier,
+ * the mapping is a handful of aliases - not worth a dependency, let alone a
+ * duplicated toolchain.
+ */
+const packagesDir = fileURLToPath(new URL('./packages', import.meta.url));
+
+const alias = Object.fromEntries(
+  readdirSync(packagesDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => [`@dfg/${entry.name}`, `${packagesDir}/${entry.name}/src/index.ts`])
+);
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: { alias },
   test: {
     globals: false,
     environment: 'node',

@@ -202,10 +202,12 @@ export class ByokGenerator implements Generator {
   private async httpError(res: Response): Promise<ProviderError> {
     // Provider error bodies can echo request context, so redact and truncate
     // before the text is allowed anywhere near a log or a notification.
-    let detail = '';
+    let detail: string;
     try {
       detail = redactKnownSecret(await res.text(), this.apiKey).slice(0, 300);
     } catch {
+      // A body that cannot be read is not worth failing over; the status code
+      // already carries the actionable part of the error.
       detail = '';
     }
     const label = this.provider === 'anthropic' ? 'Anthropic' : 'OpenAI';

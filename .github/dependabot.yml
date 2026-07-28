@@ -9,16 +9,18 @@ updates:
       dev-tooling:
         patterns: ["eslint*", "@eslint/*", "typescript-eslint", "esbuild", "tsx"]
     ignore:
-      # Dev-tool majors have broken CI before - bump these deliberately, not automatically.
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "vitest"
-        update-types: ["version-update:semver-major"]
+      # Only pin majors that are pinned for a *correctness* reason, and say why.
+      #
+      # Blanket-ignoring dev-tool majors is what let vitest sit on 2.x until it
+      # carried a critical advisory. Tooling majors are now allowed through and
+      # reviewed like any other PR; CI is the safety net.
+      #
       # @types/node must track the minimum supported Node (20), not the newest
-      # major - a 26.x bump pulls in web-streams globals that break node:readline typing.
+      # major - a 26.x bump pulls in web-streams globals that break the CLI's typing.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
-      # @types/vscode must match engines.vscode (^1.90), not the latest.
+      # @types/vscode must match engines.vscode (^1.90), not the latest, or the
+      # extension would compile against APIs it declares no support for.
       - dependency-name: "@types/vscode"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
