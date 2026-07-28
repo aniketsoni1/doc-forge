@@ -16,7 +16,15 @@ export class TemplateGenerator implements Generator {
       available: true,
       label: 'Built-in templates',
       detail: 'Deterministic, offline document templates',
-      requiresNetwork: false
+      requiresNetwork: false,
+      features: {
+        offline: true,
+        // Synchronous and effectively instantaneous, so there is nothing to
+        // cancel and no usage to report.
+        cancellation: false,
+        costReporting: false,
+        streaming: false
+      }
     });
   }
 

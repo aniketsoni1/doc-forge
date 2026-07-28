@@ -29,10 +29,23 @@ export interface DocSpec {
 export interface DocMeta {
   /** Detected/estimated section headings, in order. */
   sections?: string[];
-  /** Token count reported or estimated for an AI generation. */
+  /** Total token count reported or estimated for an AI generation. */
   tokens?: number;
-  /** Estimated cost in USD for an AI generation. */
+  /** Input tokens, when the provider reports them separately. */
+  inputTokens?: number;
+  /** Output tokens, when the provider reports them separately. */
+  outputTokens?: number;
+  /** Cost in USD. Always an estimate unless {@link exactUsage} is true. */
   costUsd?: number;
+  /**
+   * True when token counts came from the provider, false when DocForge estimated
+   * them. Hosts must label estimated figures as estimates.
+   */
+  exactUsage?: boolean;
+  /** Model id that produced the document, when applicable. */
+  model?: string;
+  /** Wall-clock duration of the successful generation, in milliseconds. */
+  durationMs?: number;
   /** True when the result came from the prompt cache. */
   cached?: boolean;
   /** True when a bounded repair pass was applied. */
@@ -53,6 +66,27 @@ export interface DocResult {
   meta: DocMeta;
 }
 
+/**
+ * What a generator can do, beyond simply running. Optional so that adding a
+ * capability never breaks an existing implementation; absent means "no".
+ */
+export interface GeneratorFeatures {
+  /** Emits partial output progressively. */
+  streaming?: boolean;
+  /** Honours an AbortSignal passed to `generate`. */
+  cancellation?: boolean;
+  /** Reports real token usage (rather than an estimate). */
+  costReporting?: boolean;
+  /** Accepts a separate system prompt. */
+  systemPrompt?: boolean;
+  /** Can enumerate the models available to it. */
+  modelDiscovery?: boolean;
+  /** Works with no network connection. */
+  offline?: boolean;
+  /** Approximate maximum input tokens, when known. */
+  maxContextTokens?: number;
+}
+
 /** A generator's self-report of whether it can run right now. */
 export interface Capability {
   /** Stable generator family id: `lm-api` | `extension` | `byok` | `template`. */
@@ -64,6 +98,20 @@ export interface Capability {
   detail?: string;
   /** Whether using this generator performs a network call. */
   requiresNetwork: boolean;
+  /** Optional feature advertisement used by the resolver and the UI. */
+  features?: GeneratorFeatures;
+}
+
+/** Per-call options threaded through the whole generation pipeline. */
+export interface GenerateOptions {
+  /**
+   * Cooperative cancellation. Implementations that advertise
+   * {@link GeneratorFeatures.cancellation} must abort in-flight work when this
+   * fires and reject with an `AbortError`.
+   */
+  signal?: AbortSignal;
+  /** Called with incremental text by generators that advertise streaming. */
+  onChunk?: (chunk: string) => void;
 }
 
 /**
@@ -73,5 +121,5 @@ export interface Capability {
 export interface Generator {
   readonly id: string;
   capability(): Promise<Capability>;
-  generate(spec: DocSpec): Promise<DocResult>;
+  generate(spec: DocSpec, options?: GenerateOptions): Promise<DocResult>;
 }
