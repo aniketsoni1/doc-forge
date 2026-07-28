@@ -7,7 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Phase 1 (Stabilisation) of the improvement plan in [`docs/PLAN.md`](docs/PLAN.md).
+### Phase 2 - Editing workflows
+
+Added
+
+- `@dfg/document-model`: Markdown and HTML parsed into a section tree with exact
+  character offsets. Correctly ignores `#` inside fenced and indented code
+  blocks, handles setext headings and YAML front matter, and finds HTML headings
+  with a real tokenizer so comments, scripts and attribute values cannot produce
+  phantom sections.
+- `@dfg/transforms`: 15 selection operations. Four - prose to bullets, bullets to
+  prose, add headings, executive summary - are deterministic and run with no
+  provider, no key and no network.
+- `@dfg/diff`: the CLI's line differ promoted to a shared package, with hunk
+  collapsing and no colour coupling, so the extension renders the same
+  comparison.
+- **DocForge: Improve Selected Text** (`Ctrl/Cmd+Alt+I`) and **DocForge:
+  Regenerate Section**, both with diff review offering accept, reject or
+  regenerate, and both cancellable.
+- Streaming drafts in the preview, rendered as text rather than markup.
+- CLI: `docforge rewrite`, `docforge transforms`, `docforge outline`.
+
+Notes
+
+- Section replacement splices at parsed offsets, so neighbouring sections are
+  preserved byte for byte. There is a test asserting exactly that for every
+  section of a document containing the awkward constructs.
+- Rewritten HTML fragments pass through the same sanitizer allowlist as
+  generated documents.
+- An edit is abandoned if the document changed while the preview was open.
+
+### Phase 1 - Stabilisation
+
+Phase 1 of the improvement plan in [`docs/PLAN.md`](docs/PLAN.md).
 No breaking changes to existing behaviour; `Generator.generate` gained an optional
 second parameter, so existing implementations continue to compile.
 

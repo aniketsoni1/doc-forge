@@ -54,6 +54,55 @@ can never hang the editor. A cancellation deliberately **stops** the ladder
 rather than falling through to templates: the user asked to stop, not to receive
 a different document.
 
+## The document model
+
+`@dfg/document-model` parses Markdown and HTML into a tree of sections, each
+carrying **exact character offsets** into the original source. Everything
+structural is built on it: section regeneration, the outline picker, and (later)
+validation.
+
+Offsets rather than strings is the load-bearing decision. Replacing a section
+splices at recorded positions, so neighbouring content is preserved byte for
+byte instead of by careful pattern matching. The test suite asserts that
+invariant directly for every section of a document containing the constructs
+that break naive approaches.
+
+Those constructs are the reason this is a scanner and not a regular expression:
+
+- `#` inside a fenced or indented code block is not a heading. Getting this
+  wrong silently corrupts code samples.
+- Fences must be closed by the same character, at least as long as the opener.
+- Setext headings (`===` / `---`) are headings; a `---` in front matter is not.
+- For HTML, headings are found with `htmlparser2`, so `<h2>` inside a comment,
+  a `<script>`, or an attribute value cannot produce a phantom section.
+
+## Editing
+
+`@dfg/transforms` is a registry of selection operations. Each declares whether
+it is `deterministic` (pure text manipulation, always available offline) or `ai`
+(needs a provider). The UI reads that flag to label the picker, so "works
+offline" is a property of the data rather than a claim in the docs.
+
+The deterministic transforms are deliberately structural, not semantic. The
+summary transform is *extractive* - it selects existing sentences rather than
+synthesising a new one - because that is a thing software can honestly do
+without a model.
+
+`@dfg/agent`'s `runTransform` runs a transform over a *fragment*. It does not
+reuse the document ladder, which validates output as a whole document (insisting
+on an H1, wrapping HTML in a page scaffold) - wrong for a three-sentence
+selection. It does share the seam, the fallback discipline, the attempt trail,
+and the sanitizer: a rewritten HTML fragment goes through the same allowlist as
+a generated document, so selection editing cannot become the hole that script
+survives.
+
+## Streaming
+
+Streaming output is shown in the preview as a **draft**, rendered into a `<pre>`
+via `textContent`. Streamed text has not been sanitized or validated yet, so it
+is never assigned as HTML and never written to disk. Only the finalized result -
+after sanitisation, validation and any repair - can be saved.
+
 ## Configuration precedence
 
 Lowest to highest: built-in defaults → `docforge.config.json` → environment
