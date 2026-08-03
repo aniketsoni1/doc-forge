@@ -5,6 +5,28 @@ All notable changes to DocForge are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-03
+
+Metadata-only patch release. No functional changes to generation, preview or
+the provider ladder — the extension code is unchanged from 0.2.0.
+
+### Changed
+
+- `homepage` now points at <https://aniketsoni.com/extensions/docforge/>,
+  a dedicated documentation page, rather than the GitHub README anchor.
+
+### Added
+
+- `qna` pointing at <https://aniketsoni.com/extensions/support/>, which
+  collects the issue tracker, the `DocForge: Run Diagnostics` command and the
+  security disclosure process in one place.
+- `sponsor` link, for parity with the other extensions published under this
+  publisher.
+- Marketplace publishing in CI now prefers Entra ID workload identity
+  federation (`vsce publish --azure-credential`) over a Personal Access
+  Token. Global Azure DevOps PATs are retired on 2026-12-01; the PAT path
+  remains as a fallback until then and emits a build warning.
+
 ## [0.2.0] - 2026-07-28
 
 Phases 1 and 2 of the plan in [`docs/PLAN.md`](docs/PLAN.md): stabilisation, then

@@ -4,6 +4,25 @@ All notable changes to the DocForge VS Code extension are documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-03
+
+Metadata-only patch release. No functional changes to generation, preview or the
+provider ladder — the extension code is unchanged from 0.2.0.
+
+### Changed
+
+- The **Homepage** link in the Marketplace Resources panel now points at
+  <https://aniketsoni.com/extensions/docforge/>, a dedicated documentation page
+  for this extension.
+
+### Added
+
+- A **Q & A** link pointing at <https://aniketsoni.com/extensions/support/>,
+  which collects the issue tracker, the `DocForge: Run Diagnostics` command and
+  the security disclosure process in one place.
+- A **Sponsor** link, for parity with the other extensions published under this
+  publisher.
+
 ## [0.2.0] - 2026-07-28
 
 ### Added
