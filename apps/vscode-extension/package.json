@@ -18,6 +18,9 @@
   "bugs": {
     "url": "https://github.com/aniketsoni1/doc-forge/issues"
   },
+  "sponsor": {
+    "url": "https://github.com/sponsors/aniketsoni1"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
