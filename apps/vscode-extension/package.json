@@ -8,7 +8,8 @@
   "publisher": "AniketSoni",
   "license": "Apache-2.0",
   "author": "aniketsoni1",
-  "homepage": "https://github.com/aniketsoni1/doc-forge#readme",
+  "homepage": "https://aniketsoni.com/extensions/docforge/",
+  "qna": "https://aniketsoni.com/extensions/support/",
   "repository": {
     "type": "git",
     "url": "https://github.com/aniketsoni1/doc-forge.git",
